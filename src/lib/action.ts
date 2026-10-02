@@ -6,7 +6,7 @@ import { logger } from "./logger";
 // ni detalles internos). `fields` lista los campos inválidos para marcarlos en la interfaz.
 export type ActionResult<T = undefined> =
   | ({ ok: true } & (T extends undefined ? { data?: undefined } : { data: T }))
-  | { ok: false; error: string; fields?: string[] };
+  | { ok: false; error: string; fields?: string[]; codes?: string[] };
 
 export async function runAction<T>(work: () => Promise<T>): Promise<ActionResult<T>> {
   try {
@@ -14,7 +14,13 @@ export async function runAction<T>(work: () => Promise<T>): Promise<ActionResult
     return { ok: true, data } as ActionResult<T>;
   } catch (error) {
     if (error instanceof ValidationError) {
-      return { ok: false, error: error.message, fields: [...new Set(error.issues.map((issue) => issue.path.split(".")[0] ?? ""))] };
+      return {
+        ok: false,
+        error: error.message,
+        fields: [...new Set(error.issues.map((issue) => issue.path.split(".")[0] ?? ""))],
+        // Códigos de la regla que falló (por ejemplo "oneCorrect"), para mensajes precisos en la interfaz.
+        codes: [...new Set(error.issues.map((issue) => issue.message))],
+      };
     }
     if (error instanceof AppError) return { ok: false, error: error.message };
     logger.error("Error inesperado en una acción", { error });

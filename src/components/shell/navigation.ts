@@ -22,7 +22,7 @@ export const NAVIGATION: Record<Role, NavItem[]> = {
   TEACHER: [
     { key: "overview", icon: "home", href: "/teacher" },
     { key: "exams", icon: "exams", phase: 2 },
-    { key: "questionBank", icon: "questions", phase: 2 },
+    { key: "questionBank", icon: "questions", href: "/teacher/question-bank" },
     { key: "reviews", icon: "reviews", phase: 6 },
   ],
   STUDENT: [

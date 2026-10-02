@@ -236,13 +236,19 @@
       "USERS_IMPORTED": "Importó usuarios",
       "COURSE_UPDATED": "Editó un curso",
       "COURSE_TEACHERS_UPDATED": "Cambió los docentes de un curso",
-      "COURSE_ENROLLMENTS_UPDATED": "Cambió las matrículas de un curso"
+      "COURSE_ENROLLMENTS_UPDATED": "Cambió las matrículas de un curso",
+      "QUESTION_CREATED": "Creó una pregunta",
+      "QUESTION_UPDATED": "Editó una pregunta",
+      "QUESTION_ARCHIVED": "Archivó una pregunta",
+      "QUESTION_RESTORED": "Restauró una pregunta"
     },
     "entities": {
       "Session": "Sesión",
       "User": "Usuario",
       "Course": "Curso",
-      "Institution": "Institución"
+      "Institution": "Institución",
+      "Question": "Pregunta",
+      "Exam": "Examen"
     }
   },
   "teacher": {
@@ -270,5 +276,109 @@
     "sidebarTitle": "Menú",
     "sidebarDescription": "Navegación de la aplicación",
     "close": "Cerrar"
+  },
+  "questionBank": {
+    "title": "Banco de preguntas",
+    "description": "Tus preguntas para reutilizar en exámenes. Al agregar una a un examen se copia: editarla aquí no cambia exámenes ya armados.",
+    "new": "Nueva pregunta",
+    "editTitle": "Editar pregunta",
+    "newTitle": "Nueva pregunta",
+    "back": "Volver al banco",
+    "edit": "Editar",
+    "duplicate": "Duplicar",
+    "archive": "Archivar",
+    "restore": "Restaurar",
+    "actions": "Acciones",
+    "duplicated": "Pregunta duplicada.",
+    "archivedMsg": "Pregunta archivada.",
+    "restored": "Pregunta restaurada.",
+    "archivedBadge": "Archivada",
+    "manualGrading": "Se califica a mano",
+    "count": "{count, plural, one {# pregunta} other {# preguntas}}",
+    "archiveConfirm": {
+      "title": "¿Archivar esta pregunta?",
+      "description": "Sale de tu banco, pero los exámenes que ya la usan conservan su copia. Puedes restaurarla cuando quieras.",
+      "confirm": "Archivar",
+      "cancel": "Cancelar"
+    },
+    "saved": "Pregunta guardada.",
+    "filters": {
+      "search": "Buscar en el enunciado",
+      "type": "Tipo",
+      "allTypes": "Todos",
+      "category": "Categoría",
+      "allCategories": "Todas",
+      "tag": "Etiqueta",
+      "allTags": "Todas",
+      "archived": "Ver archivadas",
+      "apply": "Filtrar",
+      "clear": "Limpiar"
+    },
+    "empty": "No hay preguntas con estos filtros.",
+    "emptyBank": "Tu banco está vacío. Crea la primera pregunta.",
+    "columns": {
+      "prompt": "Enunciado",
+      "type": "Tipo",
+      "points": "Puntos",
+      "category": "Categoría"
+    },
+    "points": "{points, plural, one {# punto} other {# puntos}}",
+    "types": {
+      "SINGLE_CHOICE": "Opción única",
+      "MULTIPLE_CHOICE": "Opción múltiple",
+      "TRUE_FALSE": "Verdadero o falso",
+      "SHORT_ANSWER": "Respuesta corta",
+      "LONG_ANSWER": "Respuesta larga"
+    },
+    "typeHints": {
+      "SINGLE_CHOICE": "Varias opciones, una sola correcta.",
+      "MULTIPLE_CHOICE": "Varias opciones, una o más correctas.",
+      "TRUE_FALSE": "El estudiante elige verdadero o falso.",
+      "SHORT_ANSWER": "Una palabra o frase corta.",
+      "LONG_ANSWER": "Desarrollo libre; la calificas tú."
+    },
+    "editor": {
+      "type": "Tipo de pregunta",
+      "prompt": "Enunciado",
+      "promptPlaceholder": "Escribe la pregunta tal como la verá el estudiante.",
+      "options": "Opciones",
+      "optionsHint": "Marca la respuesta correcta.",
+      "optionsHintMultiple": "Marca todas las respuestas correctas.",
+      "option": "Opción {number}",
+      "correct": "Correcta",
+      "addOption": "Agregar opción",
+      "removeOption": "Quitar la opción {number}",
+      "trueFalseAnswer": "Respuesta correcta",
+      "trueLabel": "Verdadero",
+      "falseLabel": "Falso",
+      "accepted": "Respuestas aceptadas",
+      "acceptedHint": "Una por línea, sin distinguir mayúsculas ni tildes. Si la dejas vacía, la calificas tú.",
+      "rubric": "Guía de calificación",
+      "rubricHint": "Solo la ves tú y quien califica; nunca el estudiante.",
+      "points": "Puntos",
+      "pointsHint": "En múltiplos de 0,25.",
+      "category": "Categoría",
+      "categoryPlaceholder": "Por ejemplo: Álgebra",
+      "tags": "Etiquetas",
+      "tagsHint": "Separadas por comas.",
+      "save": "Guardar pregunta",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "keyNotice": "La respuesta correcta se guarda aparte y nunca se envía al navegador del estudiante."
+    },
+    "errors": {
+      "prompt": "Escribe el enunciado (mínimo 3 caracteres).",
+      "points": "Los puntos deben ir entre 0,25 y 100, en múltiplos de 0,25.",
+      "minOptions": "Agrega al menos 2 opciones.",
+      "maxOptions": "Máximo 8 opciones.",
+      "duplicateOptions": "Hay opciones repetidas.",
+      "emptyOption": "Ninguna opción puede quedar vacía.",
+      "oneCorrect": "Marca exactamente una respuesta correcta.",
+      "atLeastOneCorrect": "Marca al menos una respuesta correcta.",
+      "unknownCorrectOption": "La respuesta correcta debe ser una de las opciones.",
+      "category": "La categoría admite hasta 60 caracteres.",
+      "tags": "Hasta 10 etiquetas de 30 caracteres.",
+      "generic": "Revisa los campos marcados."
+    }
   }
 }
