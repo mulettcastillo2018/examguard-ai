@@ -1,6 +1,7 @@
 // ExamGuard AI — esquema de datos.
 // Fase 1: instituciones, usuarios y autenticación (Better Auth), cursos y auditoría.
-// Los modelos de exámenes y supervisión se agregan en sus fases (ver docs/ANALISIS.md).
+// Fase 2: banco de preguntas, exámenes y ajustes por estudiante.
+// Los modelos de intentos y supervisión se agregan en sus fases (ver docs/ANALISIS.md).
 
 generator client {
   provider = "prisma-client-js"
@@ -20,6 +21,21 @@ enum Role {
   STUDENT
 }
 
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  LONG_ANSWER
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  ARCHIVED
+}
+
 model Institution {
   id        String     @id @default(cuid())
   name      String
@@ -28,6 +44,8 @@ model Institution {
   policy    Policy?
   users     User[]
   courses   Course[]
+  questions Question[]
+  exams     Exam[]
   auditLogs AuditLog[]
 }
 
@@ -48,26 +66,29 @@ model Policy {
 // ---------------------------------------------------------------------------
 
 model User {
-  id                 String   @id @default(cuid())
+  id                 String      @id @default(cuid())
   name               String
-  email              String   @unique
-  emailVerified      Boolean  @default(false)
+  email              String      @unique
+  emailVerified      Boolean     @default(false)
   image              String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
   role               Role
   institutionId      String
   institution        Institution @relation(fields: [institutionId], references: [id])
   // Menor de edad: su consentimiento de supervisión lo otorga el acudiente.
-  isMinor            Boolean  @default(false)
-  active             Boolean  @default(true)
-  mustChangePassword Boolean  @default(true)
+  isMinor            Boolean     @default(false)
+  active             Boolean     @default(true)
+  mustChangePassword Boolean     @default(true)
 
-  sessions    Session[]
-  accounts    Account[]
-  teaching    CourseTeacher[]
-  enrollments Enrollment[]
-  auditLogs   AuditLog[]
+  sessions       Session[]
+  accounts       Account[]
+  teaching       CourseTeacher[]
+  enrollments    Enrollment[]
+  auditLogs      AuditLog[]
+  questions      Question[]      @relation("QuestionOwner")
+  examsCreated   Exam[]          @relation("ExamCreator")
+  accommodations Accommodation[]
 
   @@index([institutionId, role])
 }
@@ -121,15 +142,16 @@ model Verification {
 // ---------------------------------------------------------------------------
 
 model Course {
-  id            String      @id @default(cuid())
+  id            String          @id @default(cuid())
   institutionId String
-  institution   Institution @relation(fields: [institutionId], references: [id])
+  institution   Institution     @relation(fields: [institutionId], references: [id])
   name          String
   code          String
   period        String // por ejemplo "2026-2"
-  createdAt     DateTime    @default(now())
+  createdAt     DateTime        @default(now())
   teachers      CourseTeacher[]
   enrollments   Enrollment[]
+  exams         Exam[]
 
   @@unique([institutionId, code, period])
 }
@@ -174,4 +196,95 @@ model AuditLog {
 
   @@index([institutionId, createdAt])
   @@index([actorId])
+}
+
+// ---------------------------------------------------------------------------
+// Banco de preguntas y exámenes (Fase 2)
+//
+// El contenido de una pregunta se guarda igual en el banco y en el examen:
+// enunciado, opciones ([{ id, label }]) y clave de respuesta por separado, para que
+// la clave nunca viaje al navegador del estudiante. Al agregar una pregunta del banco
+// a un examen se copia completa (ExamQuestion): editar el banco no altera exámenes, y
+// publicar solo bloquea la edición. Puntajes en múltiplos de 0,25 (exactos en coma flotante).
+// ---------------------------------------------------------------------------
+
+model Question {
+  id            String       @id @default(cuid())
+  institutionId String
+  institution   Institution  @relation(fields: [institutionId], references: [id])
+  ownerId       String
+  owner         User         @relation("QuestionOwner", fields: [ownerId], references: [id])
+  type          QuestionType
+  prompt        String
+  options       Json         @default("[]")
+  answerKey     Json
+  points        Float        @default(1)
+  category      String?
+  tags          String[]
+  archivedAt    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([institutionId, ownerId])
+  @@index([ownerId, archivedAt])
+}
+
+model Exam {
+  id               String          @id @default(cuid())
+  institutionId    String
+  institution      Institution     @relation(fields: [institutionId], references: [id])
+  courseId         String
+  course           Course          @relation(fields: [courseId], references: [id])
+  createdById      String
+  createdBy        User            @relation("ExamCreator", fields: [createdById], references: [id])
+  title            String
+  description      String?
+  instructions     String?
+  status           ExamStatus      @default(DRAFT)
+  // Ventana en la que se puede iniciar; obligatoria para publicar.
+  startsAt         DateTime?
+  endsAt           DateTime?
+  durationMinutes  Int             @default(60)
+  maxAttempts      Int             @default(1)
+  shuffleQuestions Boolean         @default(false)
+  // Supervisión: cámara, micrófono y pantalla completa (requerido / opcional / apagado).
+  proctoringConfig Json            @default("{}")
+  publishedAt      DateTime?
+  closedAt         DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  questions        ExamQuestion[]
+  accommodations   Accommodation[]
+
+  @@index([courseId, status])
+  @@index([institutionId, status])
+}
+
+model ExamQuestion {
+  id               String       @id @default(cuid())
+  examId           String
+  exam             Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  sourceQuestionId String?
+  position         Int
+  type             QuestionType
+  prompt           String
+  options          Json         @default("[]")
+  answerKey        Json
+  points           Float        @default(1)
+
+  @@index([examId, position])
+}
+
+// Ajustes razonables por estudiante y examen.
+model Accommodation {
+  examId       String
+  studentId    String
+  exam         Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  extraMinutes Int      @default(0)
+  cameraExempt Boolean  @default(false)
+  note         String?
+  updatedAt    DateTime @updatedAt
+
+  @@id([examId, studentId])
 }

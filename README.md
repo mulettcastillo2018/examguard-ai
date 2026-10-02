@@ -9,9 +9,8 @@ Plataforma de exámenes en línea para colegios y universidades, con supervisió
 En construcción por fases (ver [roadmap](docs/ANALISIS.md#13-roadmap-ajustado)).
 
 - **Fase 0 — Análisis:** [docs/ANALISIS.md](docs/ANALISIS.md) y [decisiones técnicas](docs/DECISIONES.md).
-- **Fase 1 — Plataforma base (en curso):**
-  - Hecho: Next.js 16, TypeScript estricto, Tailwind 4 y shadcn/ui; Prisma con PostgreSQL; Better Auth; roles y permisos; paneles por rol; auditoría; seed de demostración; pruebas e integración continua.
-  - Pendiente: correr las migraciones, el seed y las pruebas contra la base de datos.
+- **Fase 1 — Plataforma base:** Next.js 16, TypeScript estricto, Tailwind 4 y shadcn/ui; Prisma con PostgreSQL (Neon); Better Auth; roles y permisos; paneles por rol; auditoría; seed de demostración; pruebas e integración continua.
+- **Fase 2 — Administración y exámenes (en curso):** usuarios (crear, editar, desactivar, restablecer contraseña, importar por CSV) y cursos con docentes y matrículas listos; siguen el banco de preguntas y el constructor de exámenes.
 
 ## Stack
 

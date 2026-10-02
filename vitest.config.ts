@@ -13,5 +13,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/unit/**/*.test.ts"],
+    // Algunas pruebas recargan módulos (vi.resetModules); con todas las suites en paralelo
+    // pueden pasar de los 5 s por defecto en equipos lentos.
+    testTimeout: 15_000,
   },
 });

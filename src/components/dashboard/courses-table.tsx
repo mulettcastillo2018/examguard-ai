@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -11,7 +12,16 @@ interface CourseRow {
 }
 
 /** Tabla de cursos compartida por administración y docentes. */
-export async function CoursesTable({ courses, showTeachers = true }: { courses: CourseRow[]; showTeachers?: boolean }) {
+export async function CoursesTable({
+  courses,
+  showTeachers = true,
+  linkBase,
+}: {
+  courses: CourseRow[];
+  showTeachers?: boolean;
+  /** Si se indica, el nombre del curso enlaza a `${linkBase}/<id>`. */
+  linkBase?: string;
+}) {
   const t = await getTranslations();
 
   if (courses.length === 0) return <p className="text-sm text-muted-foreground">{t("common.empty")}</p>;
@@ -31,7 +41,15 @@ export async function CoursesTable({ courses, showTeachers = true }: { courses: 
         {courses.map((course) => (
           <TableRow key={course.id}>
             <TableCell className="font-mono text-xs">{course.code}</TableCell>
-            <TableCell className="font-medium">{course.name}</TableCell>
+            <TableCell className="font-medium">
+              {linkBase ? (
+                <Link href={`${linkBase}/${course.id}`} className="underline-offset-4 hover:underline">
+                  {course.name}
+                </Link>
+              ) : (
+                course.name
+              )}
+            </TableCell>
             <TableCell className="hidden sm:table-cell">{course.period}</TableCell>
             {showTeachers ? (
               <TableCell className="hidden text-muted-foreground md:table-cell">

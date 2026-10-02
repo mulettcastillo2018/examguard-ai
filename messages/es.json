@@ -88,12 +88,54 @@
     },
     "users": {
       "title": "Usuarios",
-      "description": "Personas de la institución. La creación y edición de usuarios llega en la Fase 2.",
+      "description": "Personas de la institución: crea cuentas, edítalas o desactívalas. Las contraseñas temporales se muestran una sola vez.",
       "name": "Nombre",
       "email": "Correo",
       "role": "Rol",
       "status": "Estado",
-      "active": "Activo"
+      "active": "Activo",
+      "new": "Nuevo usuario",
+      "import": "Importar CSV",
+      "actions": "Acciones",
+      "edit": "Editar",
+      "resetPassword": "Restablecer contraseña",
+      "pendingPassword": "Contraseña temporal",
+      "saved": "Cambios guardados.",
+      "form": {
+        "createTitle": "Nuevo usuario",
+        "editTitle": "Editar usuario",
+        "createDescription": "Se creará con una contraseña temporal que deberá cambiar al primer ingreso.",
+        "name": "Nombre completo",
+        "email": "Correo electrónico",
+        "role": "Rol",
+        "isMinor": "Es menor de edad",
+        "isMinorHint": "Su acudiente autoriza la supervisión de sus exámenes.",
+        "active": "Cuenta activa",
+        "activeHint": "Una cuenta inactiva no puede iniciar sesión y sus sesiones abiertas se cierran.",
+        "create": "Crear usuario",
+        "save": "Guardar",
+        "saving": "Guardando…",
+        "cancel": "Cancelar",
+        "errors": {
+          "name": "Escribe el nombre completo (mínimo 3 caracteres).",
+          "email": "Escribe un correo válido.",
+          "role": "Elige un rol.",
+          "isMinor": "Solo un estudiante puede marcarse como menor de edad."
+        }
+      },
+      "password": {
+        "title": "Contraseña temporal",
+        "description": "Entrégala a {name} por un canal seguro. No se volverá a mostrar; al ingresar deberá cambiarla.",
+        "copy": "Copiar",
+        "copied": "Copiada",
+        "done": "Listo"
+      },
+      "reset": {
+        "title": "¿Restablecer la contraseña de {name}?",
+        "description": "Se generará una contraseña temporal nueva y se cerrarán sus sesiones abiertas.",
+        "confirm": "Restablecer",
+        "cancel": "Cancelar"
+      }
     },
     "courses": {
       "title": "Cursos",
@@ -102,7 +144,38 @@
       "name": "Curso",
       "period": "Periodo",
       "teachers": "Docentes",
-      "students": "Estudiantes"
+      "students": "Estudiantes",
+      "new": "Nuevo curso",
+      "manage": "Gestionar",
+      "form": {
+        "createTitle": "Nuevo curso",
+        "editTitle": "Datos del curso",
+        "code": "Código",
+        "codeHint": "Letras, números y guiones; por ejemplo MAT-11A.",
+        "name": "Nombre",
+        "period": "Periodo",
+        "periodHint": "Año y semestre; por ejemplo 2026-2.",
+        "create": "Crear curso",
+        "save": "Guardar",
+        "saving": "Guardando…",
+        "cancel": "Cancelar",
+        "errors": {
+          "code": "Usa letras, números y guiones (2 a 20 caracteres).",
+          "name": "Escribe el nombre (mínimo 3 caracteres).",
+          "period": "Usa el formato año-semestre, por ejemplo 2026-2."
+        }
+      },
+      "detail": {
+        "teachersTitle": "Docentes",
+        "studentsTitle": "Estudiantes matriculados",
+        "search": "Buscar por nombre o correo",
+        "selected": "{count, plural, one {# seleccionado} other {# seleccionados}} de {total}",
+        "save": "Guardar cambios",
+        "saving": "Guardando…",
+        "saved": "Cambios guardados.",
+        "back": "Volver a cursos",
+        "none": "No hay personas activas con este rol."
+      }
     },
     "audit": {
       "title": "Auditoría",
@@ -112,6 +185,41 @@
       "action": "Acción",
       "detail": "Detalle",
       "system": "Sistema"
+    },
+    "import": {
+      "title": "Importar usuarios",
+      "description": "Crea cuentas en bloque desde una planilla. Cada persona recibe una contraseña temporal que deberá cambiar al primer ingreso.",
+      "columnsHelp": "Columnas: nombre, correo, rol (estudiante, docente o administrador), menor_de_edad (sí o no) y cursos (códigos separados por |). Acepta el separador ; de Excel en español.",
+      "template": "Descargar plantilla",
+      "file": "Archivo CSV",
+      "paste": "Contenido de la planilla",
+      "pastePlaceholder": "También puedes pegar aquí el contenido del CSV.",
+      "submit": "Importar",
+      "submitting": "Importando…",
+      "back": "Volver a usuarios",
+      "summary": "{created, plural, one {# creado} other {# creados}} · {exists, plural, one {# ya existía} other {# ya existían}} · {invalid, plural, one {# con error} other {# con errores}}",
+      "credentialsWarning": "Las contraseñas temporales solo se muestran ahora. Descárgalas y entrégalas por un canal seguro.",
+      "downloadCredentials": "Descargar credenciales (CSV)",
+      "line": "Línea",
+      "person": "Persona",
+      "status": "Resultado",
+      "detail": "Detalle",
+      "statuses": {
+        "created": "Creado",
+        "exists": "Ya existía",
+        "invalid": "Con error"
+      },
+      "errors": {
+        "missingName": "Falta el nombre.",
+        "invalidEmail": "Correo inválido.",
+        "invalidRole": "Rol desconocido.",
+        "duplicateInFile": "Correo repetido en el archivo.",
+        "minorNotStudent": "Solo un estudiante puede ser menor de edad.",
+        "empty": "La planilla está vacía o solo tiene el encabezado.",
+        "missingColumns": "Faltan columnas obligatorias: {columns}.",
+        "tooManyRows": "Se permiten hasta 500 filas por importación."
+      },
+      "unknownCourses": "Cursos no encontrados: {codes}"
     }
   },
   "audit": {
@@ -120,7 +228,15 @@
       "LOGIN_BLOCKED_INACTIVE": "Ingreso bloqueado: cuenta desactivada",
       "PASSWORD_CHANGED": "Cambió su contraseña",
       "USER_CREATED": "Creó un usuario",
-      "COURSE_CREATED": "Creó un curso"
+      "COURSE_CREATED": "Creó un curso",
+      "USER_UPDATED": "Editó un usuario",
+      "USER_DEACTIVATED": "Desactivó un usuario",
+      "USER_REACTIVATED": "Reactivó un usuario",
+      "USER_PASSWORD_RESET": "Restableció una contraseña",
+      "USERS_IMPORTED": "Importó usuarios",
+      "COURSE_UPDATED": "Editó un curso",
+      "COURSE_TEACHERS_UPDATED": "Cambió los docentes de un curso",
+      "COURSE_ENROLLMENTS_UPDATED": "Cambió las matrículas de un curso"
     },
     "entities": {
       "Session": "Sesión",

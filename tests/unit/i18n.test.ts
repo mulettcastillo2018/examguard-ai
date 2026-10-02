@@ -32,3 +32,14 @@ describe("textos de la interfaz", () => {
     }
   });
 });
+
+describe("plurales en español", () => {
+  it("los conteos concuerdan en número", async () => {
+    const { createTranslator } = await import("next-intl");
+    const t = createTranslator({ locale: "es", messages });
+    expect(t("admin.import.summary", { created: 2, exists: 1, invalid: 1 })).toBe("2 creados · 1 ya existía · 1 con error");
+    expect(t("admin.import.summary", { created: 1, exists: 0, invalid: 3 })).toBe("1 creado · 0 ya existían · 3 con errores");
+    expect(t("admin.courses.detail.selected", { count: 1, total: 9 })).toBe("1 seleccionado de 9");
+    expect(t("common.students", { count: 1 })).toBe("1 estudiante");
+  });
+});
