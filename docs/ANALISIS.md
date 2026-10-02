@@ -647,12 +647,14 @@ Al cerrar cada fase: pruebas, TypeScript, lint, corrección de errores, document
 
 ---
 
-## 14. Decisiones pendientes antes de la Fase 1
+## 14. Decisiones tomadas (1 de octubre de 2026)
 
-1. **Evidencia audiovisual:** recomendado no grabar en el MVP (solo eventos); fotos puntuales en una versión posterior.
-2. **Menores de edad:** recomendado contemplarlos desde el inicio (campo `isMinor` y consentimiento del acudiente).
-3. **Proveedor de IA:** Claude con una API key propia, o proveedor simulado hasta tenerla.
-4. **Idioma de la interfaz:** solo español, o español e inglés desde el inicio como en los otros proyectos.
-5. **Autenticación:** recomendado Better Auth (estable) en lugar de Auth.js v5 (beta).
-6. **Base de datos y despliegue:** recomendado un proyecto nuevo en Neon y demo en Vercel; Docker validado en CI.
-7. **Repositorio:** público en GitHub desde el inicio, como los otros proyectos.
+| # | Tema | Decisión | Consecuencia para el diseño |
+|---|---|---|---|
+| 1 | Evidencia audiovisual | **No se graba en el MVP.** Cámara y audio se procesan en el navegador; solo se envían eventos | Sin almacenamiento de archivos ni cifrado de medios en las primeras fases. La revisión usa la línea de tiempo y las señales. Fotos puntuales quedan como evolución opcional |
+| 2 | Menores de edad | **Se contemplan desde la Fase 1** | `User.isMinor`; el consentimiento de un menor lo otorga su acudiente (`ConsentGrantor.GUARDIAN`). La institución registra al acudiente |
+| 3 | Proveedor de IA | **Claude (API de Anthropic)**, con proveedor simulado como respaldo | `AIProvider` con dos implementaciones. La API key se necesita en la Fase 5; sin ella, todo funciona con plantillas |
+| 4 | Idioma | **Español, preparado para inglés** | Todos los textos de la interfaz en archivos de mensajes desde el inicio; el inglés se agrega al final sin tocar componentes |
+| 5 | Autenticación | **Better Auth** (estable) en lugar de Auth.js v5 (beta) | Modelos de sesión, cuenta y verificación generados por su CLI |
+| 6 | Base de datos y despliegue | **Proyecto nuevo en Neon**, demo en Vercel; Docker validado en GitHub Actions | Se necesita la cadena de conexión de Neon para las migraciones de la Fase 1 |
+| 7 | Repositorio | **Público en GitHub**, como los otros proyectos | Revisión de secretos antes del primer push |
