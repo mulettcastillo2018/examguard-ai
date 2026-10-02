@@ -59,7 +59,8 @@ jobs:
       - name: Lint
         run: |
           npm install --no-save eslint@9 eslint-config-next@16.3.6
-          npm run lint
+          npx eslint . -f json -o eslint-report.json || true
+          node scripts/ci/eslint-annotations.mjs eslint-report.json
 
       - name: Pruebas unitarias
         run: npm test

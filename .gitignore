@@ -49,3 +49,4 @@ next-env.d.ts
 *.docx
 *.xlsx
 *.pptx
+eslint-report.json
