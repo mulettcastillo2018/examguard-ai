@@ -1,0 +1,146 @@
+{
+  "app": {
+    "name": "ExamGuard AI",
+    "tagline": "Exámenes en línea con supervisión asistida por IA",
+    "description": "Plataforma para que colegios y universidades realicen exámenes en línea. La IA convierte señales dispersas en información estructurada; la decisión siempre es de una persona."
+  },
+  "roles": {
+    "ADMIN": "Administración",
+    "TEACHER": "Docente",
+    "STUDENT": "Estudiante"
+  },
+  "landing": {
+    "title": "Evaluaciones en línea, revisadas por personas",
+    "subtitle": "ExamGuard AI organiza exámenes, cursos y resultados, y registra señales de la sesión para que un docente las revise. La IA no decide si alguien hizo trampa.",
+    "login": "Iniciar sesión",
+    "principles": {
+      "detection": "Detecta eventos",
+      "detectionText": "Cambios de pestaña, inactividad, pérdida de conexión: hechos con hora y duración.",
+      "interpretation": "Los organiza",
+      "interpretationText": "Reglas transparentes convierten eventos en señales con su explicación.",
+      "decision": "Una persona decide",
+      "decisionText": "El docente revisa el contexto y toma la decisión. Nada se concluye automáticamente."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "description": "Usa la cuenta que te entregó tu institución.",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Entrar",
+      "submitting": "Entrando…",
+      "invalid": "Correo o contraseña incorrectos, o la cuenta está desactivada.",
+      "tooManyAttempts": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
+      "noSignUp": "No hay registro público: las cuentas las crea la administración de tu institución."
+    },
+    "password": {
+      "title": "Cambia tu contraseña",
+      "requiredNotice": "Tu cuenta tiene una contraseña temporal. Para continuar, elige una nueva.",
+      "description": "Mínimo 10 caracteres. Al cambiarla se cierran tus otras sesiones abiertas.",
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirma la nueva contraseña",
+      "submit": "Guardar contraseña",
+      "submitting": "Guardando…",
+      "mismatch": "Las contraseñas nuevas no coinciden.",
+      "tooShort": "La nueva contraseña debe tener al menos 10 caracteres.",
+      "sameAsCurrent": "La nueva contraseña debe ser distinta de la actual.",
+      "invalidCurrent": "La contraseña actual no es correcta.",
+      "failed": "No se pudo cambiar la contraseña. Inténtalo de nuevo.",
+      "success": "Contraseña actualizada.",
+      "back": "Volver"
+    },
+    "signOut": "Cerrar sesión",
+    "changePassword": "Cambiar contraseña"
+  },
+  "nav": {
+    "overview": "Inicio",
+    "users": "Usuarios",
+    "courses": "Cursos",
+    "audit": "Auditoría",
+    "exams": "Exámenes",
+    "questionBank": "Banco de preguntas",
+    "reviews": "Revisión de sesiones",
+    "myExams": "Mis exámenes",
+    "results": "Resultados",
+    "myData": "Mis datos de supervisión",
+    "upcomingPhase": "Fase {phase}"
+  },
+  "common": {
+    "notAvailableYet": "Disponible en la Fase {phase}",
+    "empty": "Todavía no hay datos.",
+    "minor": "Menor de edad",
+    "inactive": "Inactivo",
+    "students": "{count, plural, =0 {Sin estudiantes} one {# estudiante} other {# estudiantes}}",
+    "teachers": "{count, plural, =0 {Sin docente} one {# docente} other {# docentes}}"
+  },
+  "admin": {
+    "overview": {
+      "title": "Panel de la institución",
+      "users": "Usuarios",
+      "teachers": "Docentes",
+      "students": "Estudiantes",
+      "minors": "Menores de edad",
+      "courses": "Cursos",
+      "recentActivity": "Actividad reciente",
+      "seeAudit": "Ver toda la auditoría"
+    },
+    "users": {
+      "title": "Usuarios",
+      "description": "Personas de la institución. La creación y edición de usuarios llega en la Fase 2.",
+      "name": "Nombre",
+      "email": "Correo",
+      "role": "Rol",
+      "status": "Estado",
+      "active": "Activo"
+    },
+    "courses": {
+      "title": "Cursos",
+      "description": "Cursos del periodo con sus docentes y estudiantes.",
+      "code": "Código",
+      "name": "Curso",
+      "period": "Periodo",
+      "teachers": "Docentes",
+      "students": "Estudiantes"
+    },
+    "audit": {
+      "title": "Auditoría",
+      "description": "Registro de acciones relevantes: ingresos, cambios de contraseña y, en las próximas fases, publicaciones, revisiones y borrados.",
+      "when": "Fecha",
+      "who": "Quién",
+      "action": "Acción",
+      "detail": "Detalle",
+      "system": "Sistema"
+    }
+  },
+  "audit": {
+    "actions": {
+      "LOGIN_SUCCEEDED": "Inició sesión",
+      "LOGIN_BLOCKED_INACTIVE": "Ingreso bloqueado: cuenta desactivada",
+      "PASSWORD_CHANGED": "Cambió su contraseña",
+      "USER_CREATED": "Creó un usuario",
+      "COURSE_CREATED": "Creó un curso"
+    }
+  },
+  "teacher": {
+    "overview": {
+      "title": "Panel docente",
+      "examsCreated": "Exámenes creados",
+      "examsActive": "Exámenes activos",
+      "studentsEvaluated": "Estudiantes evaluados",
+      "pendingSessions": "Sesiones pendientes de revisión",
+      "myCourses": "Mis cursos"
+    }
+  },
+  "student": {
+    "overview": {
+      "title": "Hola, {name}",
+      "upcomingExams": "Próximos exámenes",
+      "myCourses": "Mis cursos",
+      "privacyTitle": "Tu privacidad",
+      "privacyText": "Antes de cada examen supervisado verás qué información se registra, para qué, cuánto tiempo se conserva y quién puede verla. Si no autorizas la cámara, igual puedes presentar el examen.",
+      "guardianNotice": "Como eres menor de edad, la autorización de supervisión la da tu acudiente."
+    }
+  }
+}

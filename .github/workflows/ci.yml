@@ -1,0 +1,85 @@
+# Integración continua: en cada push a main y en cada pull request se verifica todo
+# contra una base PostgreSQL desechable (nunca la real).
+#
+# ESLint y Playwright se instalan solo aquí: la red corporativa donde se desarrolla
+# bloquea algunas de sus dependencias (ver docs/DECISIONES.md).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: examguard
+          POSTGRES_PASSWORD: examguard
+          POSTGRES_DB: examguard_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U examguard"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Valores solo para esta base desechable.
+      DATABASE_URL: postgresql://examguard:examguard@localhost:5432/examguard_ci
+      BETTER_AUTH_SECRET: secreto-solo-para-ci-0123456789abcdefghijklmnop
+      BETTER_AUTH_URL: http://localhost:3000
+      SEED_PASSWORD: Demo-CI-ExamGuard-2026
+      E2E_PASSWORD: Demo-CI-ExamGuard-2026
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Migraciones
+        run: npm run db:migrate
+
+      - name: El esquema coincide con las migraciones
+        run: npm run db:check
+
+      - name: Datos de demostración
+        run: npm run db:seed
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Lint
+        run: |
+          npm install --no-save eslint@9 eslint-config-next@16.3.6
+          npm run lint
+
+      - name: Pruebas unitarias
+        run: npm test
+
+      - name: Pruebas de integración (con base de datos)
+        run: npm run test:integration
+
+      - name: Build de producción
+        run: npm run build
+
+      - name: Pruebas de punta a punta (Playwright)
+        run: |
+          npm install --no-save @playwright/test@1.63.0
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+
+      - name: Trazas de Playwright si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

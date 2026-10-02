@@ -1,6 +1,6 @@
 # ExamGuard AI — Análisis inicial y propuesta técnica (Fase 0)
 
-Fecha: 1 de octubre de 2026 · Fuente: `docs/especificacion-original.docx` (31 secciones)
+Fecha: 1 de octubre de 2026 · Fuente: `docs/especificacion-original.md` (31 secciones)
 
 Este documento responde a la sección 27 de la especificación ("NO empieces escribiendo todo el código. Primero analiza el proyecto"). Contiene la revisión crítica de la especificación, las restricciones reales del entorno de desarrollo y la propuesta técnica: arquitectura, carpetas, esquema Prisma, interfaces, flujos, agentes, privacidad, riesgos y roadmap. Al final están las decisiones que deben tomarse antes de la Fase 1.
 
@@ -55,7 +55,7 @@ Verificado en este equipo el 1 de octubre de 2026:
 |---|---|---|
 | Docker y Docker Compose | No instalados; sin permisos de administrador ni WSL | Se escriben `Dockerfile` y `docker-compose.yml` y se validan en GitHub Actions: se construye la imagen, se levanta con PostgreSQL y se consulta `/api/health` |
 | PostgreSQL | No hay servidor local | Neon (como en los otros proyectos): una rama para desarrollo. En CI, PostgreSQL como servicio |
-| Prisma | Versión 7 disponible; los motores binarios se descargaron a mano en los proyectos anteriores por el proxy | Probar primero Prisma 7 (cliente sin motor Rust con `@prisma/adapter-pg`); si `migrate` exige el motor de esquema, repetir la descarga manual |
+| Prisma | Versión 7 disponible; los motores binarios se descargaron a mano en los proyectos anteriores por el proxy | Probar primero Prisma 7 (cliente sin motor Rust con `@prisma/adapter-pg`); si `migrate` exige el motor de esquema, repetir la descarga manual **Actualización (Fase 1):** el paquete del CLI de Prisma 7 está bloqueado; se usa Prisma 6.19.3 (ver `DECISIONES.md`, #2) |
 | Playwright | El CDN de navegadores no responde desde esta red | Usar el Edge instalado (`channel: "msedge"`) en local; Chromium en CI |
 | MediaPipe (detección de rostros) | El modelo `blaze_face_short_range.tflite` (229 KB) sí descarga; el WASM viene en el paquete npm | Servir modelo y WASM desde `public/` (sin CDN externo, compatible con una CSP estricta) |
 | API de Claude | `api.anthropic.com` responde (401 sin llave) | Funciona con una API key. Sin llave, un proveedor simulado mantiene todo operativo |

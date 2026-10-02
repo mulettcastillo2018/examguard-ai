@@ -1,0 +1,174 @@
+// ExamGuard AI — esquema de datos.
+// Fase 1: instituciones, usuarios y autenticación (Better Auth), cursos y auditoría.
+// Los modelos de exámenes y supervisión se agregan en sus fases (ver docs/ANALISIS.md).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+model Institution {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  policy    Policy?
+  users     User[]
+  courses   Course[]
+  auditLogs AuditLog[]
+}
+
+// Configuración de la institución: retención de evidencia y umbrales del Rule Engine.
+model Policy {
+  id                    String      @id @default(cuid())
+  institutionId         String      @unique
+  institution           Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  evidenceRetentionDays Int         @default(30)
+  ruleThresholds        Json        @default("{}")
+  consentTextVersion    String      @default("2026-10-01")
+  updatedAt             DateTime    @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Autenticación (Better Auth). Los nombres y tipos de estos cuatro modelos son los
+// que espera Better Auth 1.7; User suma rol, institución y datos de la plataforma.
+// ---------------------------------------------------------------------------
+
+model User {
+  id                 String   @id @default(cuid())
+  name               String
+  email              String   @unique
+  emailVerified      Boolean  @default(false)
+  image              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  role               Role
+  institutionId      String
+  institution        Institution @relation(fields: [institutionId], references: [id])
+  // Menor de edad: su consentimiento de supervisión lo otorga el acudiente.
+  isMinor            Boolean  @default(false)
+  active             Boolean  @default(true)
+  mustChangePassword Boolean  @default(true)
+
+  sessions    Session[]
+  accounts    Account[]
+  teaching    CourseTeacher[]
+  enrollments Enrollment[]
+  auditLogs   AuditLog[]
+
+  @@index([institutionId, role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// ---------------------------------------------------------------------------
+// Cursos
+// ---------------------------------------------------------------------------
+
+model Course {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  name          String
+  code          String
+  period        String // por ejemplo "2026-2"
+  createdAt     DateTime    @default(now())
+  teachers      CourseTeacher[]
+  enrollments   Enrollment[]
+
+  @@unique([institutionId, code, period])
+}
+
+model CourseTeacher {
+  courseId  String
+  teacherId String
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher   User   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, teacherId])
+  @@index([teacherId])
+}
+
+model Enrollment {
+  courseId  String
+  studentId String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([courseId, studentId])
+  @@index([studentId])
+}
+
+// ---------------------------------------------------------------------------
+// Auditoría
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  actorId       String?
+  actor         User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action        String // por ejemplo USER_CREATED, LOGIN_SUCCEEDED, COURSE_CREATED
+  entityType    String
+  entityId      String?
+  metadata      Json?
+  ip            String?
+  createdAt     DateTime    @default(now())
+
+  @@index([institutionId, createdAt])
+  @@index([actorId])
+}
