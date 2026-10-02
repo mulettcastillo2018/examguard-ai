@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAutoGradable, newOptionId, questionInputSchema } from "@/modules/question-bank/content";
+import { formatPoints, isAutoGradable, newOptionId, parsePoints, questionInputSchema } from "@/modules/question-bank/content";
 
 const options = [
   { id: "opta0001", label: "París" },
@@ -69,5 +69,17 @@ describe("contenido de las preguntas", () => {
 
   it("genera identificadores de opción válidos", () => {
     for (let i = 0; i < 50; i++) expect(newOptionId()).toMatch(/^[a-z0-9]{8}$/);
+  });
+
+  it("lee los puntos con coma o punto decimal y rechaza lo que no es número", () => {
+    expect(parsePoints("1,5")).toBe(1.5);
+    expect(parsePoints("1.5")).toBe(1.5);
+    expect(parsePoints(" 2 ")).toBe(2);
+    expect(parsePoints("0,25")).toBe(0.25);
+    for (const invalid of ["", "abc", "1,5,0", "-1", "1e2", "1.000,5"]) expect(parsePoints(invalid)).toBeNaN();
+    // NaN no pasa el esquema: el formulario muestra el error de puntos en lugar de guardar otro valor.
+    expect(questionInputSchema.safeParse({ type: "TRUE_FALSE", prompt: "Pregunta", points: parsePoints("x"), answerKey: { value: true } }).success).toBe(false);
+    expect(formatPoints(1.5)).toBe("1,5");
+    expect(formatPoints(3)).toBe("3");
   });
 });

@@ -101,6 +101,19 @@ export function isAutoGradable(content: Pick<QuestionContent, "type" | "answerKe
   return true;
 }
 
+/**
+ * Convierte lo que escribe el docente en puntos. Acepta coma o punto decimal ("1,5" o "1.5"):
+ * en Colombia se escribe con coma y un campo numérico del navegador la ignoraba (1,5 → 15).
+ * Devuelve NaN si no es un número, para que el esquema muestre el error de puntos.
+ */
+export function parsePoints(text: string): number {
+  const normalized = text.trim().replace(",", ".");
+  return /^\d+(\.\d+)?$/.test(normalized) ? Number(normalized) : Number.NaN;
+}
+
+/** Puntos con coma decimal, como se escriben en español. */
+export const formatPoints = (points: number) => String(points).replace(".", ",");
+
 /** Identificador corto para una opción nueva (en el navegador o el servidor). */
 export function newOptionId(): string {
   return Math.random().toString(36).slice(2, 10).padEnd(8, "0");

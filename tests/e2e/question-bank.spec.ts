@@ -12,6 +12,17 @@ async function loginAsTeacher(page: Page) {
   await expect(page).toHaveURL(/\/teacher$/);
 }
 
+/** Guarda el editor; si no se guarda, la falla dice por qué (el aviso del formulario). */
+async function saveQuestion(page: Page) {
+  await page.getByRole("button", { name: "Guardar pregunta" }).click();
+  const saved = page.getByText("Pregunta guardada.");
+  // Solo la alerta del formulario: Next.js agrega su propio role="alert" para anunciar rutas.
+  const problem = page.locator('form [data-slot="alert"]');
+  await expect(saved.or(problem).first()).toBeVisible({ timeout: 15_000 });
+  if (await problem.isVisible()) throw new Error(`No se guardó: ${await problem.innerText()}`);
+  await expect(page).toHaveURL(/\/teacher\/question-bank$/, { timeout: 15_000 });
+}
+
 test("el docente crea una pregunta de opción única y la encuentra con los filtros", async ({ page }) => {
   const prompt = `¿Cuál es la raíz cuadrada de 81? (${suffix})`;
   await loginAsTeacher(page);
@@ -26,12 +37,12 @@ test("el docente crea una pregunta de opción única y la encuentra con los filt
   await expect(page.getByText("Marca exactamente una respuesta correcta.")).toBeVisible();
 
   await page.getByLabel("Correcta: Opción 2").check();
-  await page.getByLabel("Puntos").fill("1.5");
+  // Con coma decimal, como se escribe en Colombia.
+  await page.getByLabel("Puntos").fill("1,5");
   await page.getByLabel("Categoría").fill("Raíces");
   await page.getByLabel("Etiquetas").fill(`e2e-${suffix}`);
-  await page.getByRole("button", { name: "Guardar pregunta" }).click();
+  await saveQuestion(page);
 
-  await expect(page).toHaveURL(/\/teacher\/question-bank$/);
   const row = page.getByRole("row", { name: new RegExp(suffix) });
   await expect(row).toContainText("Opción única");
   await expect(row).toContainText("1,5 puntos");
@@ -49,7 +60,7 @@ test("una pregunta abierta se marca para calificar a mano y se puede archivar", 
   await page.getByText("Respuesta larga", { exact: true }).click();
   await page.getByLabel("Enunciado").fill(prompt);
   await page.getByLabel("Guía de calificación").fill("Menciona catetos e hipotenusa.");
-  await page.getByRole("button", { name: "Guardar pregunta" }).click();
+  await saveQuestion(page);
 
   const row = page.getByRole("row", { name: new RegExp(`Pitágoras \\(${suffix}\\)`) });
   await expect(row).toContainText("Se califica a mano");

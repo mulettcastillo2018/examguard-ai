@@ -16,7 +16,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   CHOICE_TYPES,
+  formatPoints,
   newOptionId,
+  parsePoints,
   QUESTION_TYPES,
   questionInputSchema,
   type QuestionInput,
@@ -54,7 +56,7 @@ export function QuestionEditor({
 
   const [type, setType] = useState<QuestionType>(initial?.type ?? "SINGLE_CHOICE");
   const [prompt, setPrompt] = useState(initial?.prompt ?? "");
-  const [points, setPoints] = useState(String(initial?.points ?? 1));
+  const [points, setPoints] = useState(formatPoints(initial?.points ?? 1));
   const [options, setOptions] = useState(initial?.options.length ? initial.options : blankOptions());
   const [correct, setCorrect] = useState<string[]>(
     (initial?.answerKey.correctOptionIds as string[] | undefined) ?? [],
@@ -79,7 +81,7 @@ export function QuestionEditor({
   function buildInput(): QuestionInput {
     const base = {
       prompt,
-      points: Number(points.replace(",", ".")),
+      points: parsePoints(points),
       category,
       tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
     };
@@ -120,8 +122,8 @@ export function QuestionEditor({
       return;
     }
     toast.success(t("saved"));
+    // revalidatePath ya invalidó la lista: basta con navegar (un refresh aquí la pediría dos veces).
     router.push("/teacher/question-bank");
-    router.refresh();
   }
 
   const has = (field: string) => problems.fields.includes(field);
@@ -276,11 +278,9 @@ export function QuestionEditor({
           <Label htmlFor="q-points">{t("editor.points")}</Label>
           <Input
             id="q-points"
-            type="number"
+            type="text"
             inputMode="decimal"
-            step="0.25"
-            min="0.25"
-            max="100"
+            autoComplete="off"
             value={points}
             onChange={(event) => setPoints(event.target.value)}
             aria-invalid={has("points")}
