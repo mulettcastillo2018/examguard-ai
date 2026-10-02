@@ -6,9 +6,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// DATABASE_URL: conexión con pooling para la aplicación (en Neon, con pgbouncer=true).
+// DIRECT_URL: conexión directa, la que usan las migraciones.
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {

@@ -11,6 +11,9 @@ const serverEnvSchema = z.object({
     .string()
     .min(32, { message: "BETTER_AUTH_SECRET debe tener al menos 32 caracteres" }),
   BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
+  // Intentos de inicio de sesión por minuto desde una misma IP (solo en producción).
+  // Las pruebas E2E del CI lo suben porque inician sesión muchas veces desde la misma máquina.
+  AUTH_SIGNIN_MAX_PER_MINUTE: z.coerce.number().int().min(1).max(1000).default(5),
   // Proveedor de IA (Fase 5). Sin llave se usa el proveedor simulado.
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
 });

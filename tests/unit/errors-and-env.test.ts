@@ -58,5 +58,19 @@ describe("variables de entorno del servidor", () => {
     const env = getServerEnv();
     expect(env.BETTER_AUTH_URL).toBe("http://localhost:3000");
     expect(env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(env.AUTH_SIGNIN_MAX_PER_MINUTE).toBe(5);
+  });
+
+  it("el límite de inicios de sesión se puede subir para las pruebas, pero no a cero", async () => {
+    process.env.DATABASE_URL = "postgresql://u:p@localhost:5432/db";
+    process.env.BETTER_AUTH_SECRET = "x".repeat(40);
+    process.env.AUTH_SIGNIN_MAX_PER_MINUTE = "100";
+    const first = await import("@/lib/env");
+    expect(first.getServerEnv().AUTH_SIGNIN_MAX_PER_MINUTE).toBe(100);
+
+    vi.resetModules();
+    process.env.AUTH_SIGNIN_MAX_PER_MINUTE = "0";
+    const second = await import("@/lib/env");
+    expect(() => second.getServerEnv()).toThrow(/AUTH_SIGNIN_MAX_PER_MINUTE/);
   });
 });

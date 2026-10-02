@@ -121,6 +121,12 @@
       "PASSWORD_CHANGED": "Cambió su contraseña",
       "USER_CREATED": "Creó un usuario",
       "COURSE_CREATED": "Creó un curso"
+    },
+    "entities": {
+      "Session": "Sesión",
+      "User": "Usuario",
+      "Course": "Curso",
+      "Institution": "Institución"
     }
   },
   "teacher": {
@@ -142,5 +148,11 @@
       "privacyText": "Antes de cada examen supervisado verás qué información se registra, para qué, cuánto tiempo se conserva y quién puede verla. Si no autorizas la cámara, igual puedes presentar el examen.",
       "guardianNotice": "Como eres menor de edad, la autorización de supervisión la da tu acudiente."
     }
+  },
+  "ui": {
+    "toggleSidebar": "Mostrar u ocultar el menú",
+    "sidebarTitle": "Menú",
+    "sidebarDescription": "Navegación de la aplicación",
+    "close": "Cerrar"
   }
 }

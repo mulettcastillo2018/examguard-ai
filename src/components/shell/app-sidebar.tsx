@@ -81,7 +81,13 @@ export function AppSidebar({
                 if (!item.href) {
                   return (
                     <SidebarMenuItem key={item.key}>
-                      <SidebarMenuButton disabled tooltip={label} aria-disabled>
+                      {/* pr-16: deja espacio a la etiqueta "Fase N" para que el texto largo se corte en vez de chocar */}
+                      <SidebarMenuButton
+                        disabled
+                        tooltip={label}
+                        aria-disabled
+                        className="group-has-data-[sidebar=menu-badge]/menu-item:pr-16"
+                      >
                         <Icon />
                         <span>{label}</span>
                       </SidebarMenuButton>

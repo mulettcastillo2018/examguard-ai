@@ -39,7 +39,7 @@ export async function AuditTable({ rows }: { rows: AuditRow[] }) {
             <TableCell>{row.actor?.name ?? t("admin.audit.system")}</TableCell>
             <TableCell>{isKnownAction(row.action) ? t(`audit.actions.${row.action}`) : row.action}</TableCell>
             <TableCell className="hidden text-muted-foreground md:table-cell">
-              {row.entityType}
+              {t.has(`audit.entities.${row.entityType}`) ? t(`audit.entities.${row.entityType}`) : row.entityType}
               {row.ip ? ` · ${row.ip}` : ""}
             </TableCell>
           </TableRow>

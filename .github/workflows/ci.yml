@@ -29,10 +29,13 @@ jobs:
     env:
       # Valores solo para esta base desechable.
       DATABASE_URL: postgresql://examguard:examguard@localhost:5432/examguard_ci
+      DIRECT_URL: postgresql://examguard:examguard@localhost:5432/examguard_ci
       BETTER_AUTH_SECRET: secreto-solo-para-ci-0123456789abcdefghijklmnop
       BETTER_AUTH_URL: http://localhost:3000
       SEED_PASSWORD: Demo-CI-ExamGuard-2026
       E2E_PASSWORD: Demo-CI-ExamGuard-2026
+      # Las pruebas E2E inician sesión muchas veces desde la misma IP; en producción el límite es 5.
+      AUTH_SIGNIN_MAX_PER_MINUTE: "100"
     steps:
       - uses: actions/checkout@v7
 

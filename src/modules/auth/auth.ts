@@ -41,7 +41,7 @@ function createAuth() {
     },
     rateLimit: {
       // Activo en producción (comportamiento por defecto de Better Auth); más estricto al iniciar sesión.
-      customRules: { "/sign-in/email": { window: 60, max: 5 } },
+      customRules: { "/sign-in/email": { window: 60, max: env.AUTH_SIGNIN_MAX_PER_MINUTE } },
     },
     databaseHooks: {
       session: {
