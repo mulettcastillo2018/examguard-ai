@@ -54,6 +54,7 @@ describe("variables de entorno del servidor", () => {
     process.env.BETTER_AUTH_SECRET = "x".repeat(40);
     delete process.env.BETTER_AUTH_URL;
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.AUTH_SIGNIN_MAX_PER_MINUTE; // el CI la define para las pruebas E2E
     const { getServerEnv } = await import("@/lib/env");
     const env = getServerEnv();
     expect(env.BETTER_AUTH_URL).toBe("http://localhost:3000");
