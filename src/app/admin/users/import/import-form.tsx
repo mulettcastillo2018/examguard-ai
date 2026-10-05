@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { importUsersAction, type ImportActionData } from "../actions";
 
 // Descarga un texto como archivo CSV, con BOM para que Excel respete las tildes.
@@ -28,6 +29,7 @@ const csvCell = (value: string) => (/[;"\n]/.test(value) ? `"${value.replace(/"/
 
 export function ImportForm({ template }: { template: string }) {
   const t = useTranslations("admin.import");
+  const hydrated = useHydrated();
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,40 +71,43 @@ export function ImportForm({ template }: { template: string }) {
 
   return (
     <div className="grid gap-6">
-      <form onSubmit={onSubmit} className="grid gap-4">
-        <p className="text-sm text-muted-foreground">{t("columnsHelp")}</p>
-        <div>
-          <Button type="button" variant="outline" size="sm" onClick={() => downloadCsv("plantilla-usuarios.csv", template)}>
-            <FileDown />
-            {t("template")}
-          </Button>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="import-file">{t("file")}</Label>
-          <Input id="import-file" type="file" accept=".csv,text/csv" onChange={onFile} />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="import-text">{t("paste")}</Label>
-          <Textarea
-            id="import-text"
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder={t("pastePlaceholder")}
-            rows={8}
-            className="font-mono text-xs"
-          />
-        </div>
-        {error ? (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
-        <div>
-          <Button type="submit" disabled={pending || !text.trim()}>
-            <Upload />
-            {pending ? t("submitting") : t("submit")}
-          </Button>
-        </div>
+      <form onSubmit={onSubmit}>
+        {/* Deshabilitado hasta hidratar: lo pegado antes no llegaría al estado. */}
+        <fieldset disabled={!hydrated || pending} className="grid min-w-0 gap-4">
+          <p className="text-sm text-muted-foreground">{t("columnsHelp")}</p>
+          <div>
+            <Button type="button" variant="outline" size="sm" onClick={() => downloadCsv("plantilla-usuarios.csv", template)}>
+              <FileDown />
+              {t("template")}
+            </Button>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="import-file">{t("file")}</Label>
+            <Input id="import-file" type="file" accept=".csv,text/csv" onChange={onFile} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="import-text">{t("paste")}</Label>
+            <Textarea
+              id="import-text"
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              placeholder={t("pastePlaceholder")}
+              rows={8}
+              className="font-mono text-xs"
+            />
+          </div>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+          <div>
+            <Button type="submit" disabled={pending || !text.trim()}>
+              <Upload />
+              {pending ? t("submitting") : t("submit")}
+            </Button>
+          </div>
+        </fieldset>
       </form>
 
       {result ? (

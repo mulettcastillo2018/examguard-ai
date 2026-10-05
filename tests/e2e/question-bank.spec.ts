@@ -57,7 +57,8 @@ test("una pregunta abierta se marca para calificar a mano y se puede archivar", 
   const prompt = `Explica el teorema de Pitágoras (${suffix})`;
   await loginAsTeacher(page);
   await page.goto("/teacher/question-bank/new");
-  await page.getByText("Respuesta larga", { exact: true }).click();
+  // Por su rol: Playwright espera a que el formulario esté habilitado (hidratado).
+  await page.getByRole("radio", { name: /^Respuesta larga/ }).click();
   await page.getByLabel("Enunciado").fill(prompt);
   await page.getByLabel("Guía de calificación").fill("Menciona catetos e hipotenusa.");
   await saveQuestion(page);
