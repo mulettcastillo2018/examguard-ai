@@ -39,3 +39,26 @@ export function jsonPost<P>(handler: (body: unknown, params: P) => Promise<unkno
     }
   };
 }
+
+/** GET con errores convertidos en respuestas seguras (sin efectos visibles: no exige origen). */
+export function jsonGet<P>(handler: (params: P) => Promise<unknown>) {
+  return async (_request: NextRequest, context: { params: Promise<P> }) => {
+    try {
+      const result = await handler(await context.params);
+      return NextResponse.json(result ?? {}, { headers: { "Cache-Control": "no-store" } });
+    } catch (error) {
+      const { status, body } = toErrorResponse(error);
+      if (status >= 500) logger.error("Error inesperado en una ruta de API", { error });
+      return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
+    }
+  };
+}
+
+/** Lo que llega al navegador por JSON: las fechas viajan como texto ISO. */
+export type Jsonify<T> = T extends Date
+  ? string
+  : T extends (infer U)[]
+    ? Jsonify<U>[]
+    : T extends object
+      ? { [K in keyof T]: Jsonify<T[K]> }
+      : T;

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight, Clock, CloudOff, Loader2, Send } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, CloudOff, Expand, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -24,8 +24,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { getClientId } from "@/lib/client-id";
 import { cn } from "@/lib/utils";
 import { isAnswered } from "@/modules/attempts/answers";
+import type { ClientEvent } from "@/modules/proctoring/catalog";
 import type { QuestionType } from "@/modules/question-bank/content";
 import { createAnswerSync, SyncHttpError, type SavedAnswer, type SyncBlock, type SyncState } from "./answer-sync";
+import { startDetectors } from "./proctoring/detectors";
+import { createEventQueue, QueueHttpError } from "./proctoring/event-queue";
+import { SimulatorPanel } from "./proctoring/simulator-panel";
 
 export interface RunnerQuestion {
   id: string;
@@ -37,6 +41,15 @@ export interface RunnerQuestion {
 
 const LIMITS = { SHORT_ANSWER: 200, LONG_ANSWER: 10_000 } as const;
 const storageKey = (attemptId: string) => `examguard:pending:${attemptId}`;
+const eventsKey = (attemptId: string) => `examguard:events:${attemptId}`;
+
+export interface Supervision {
+  enabled: boolean;
+  fullscreen: boolean;
+  camera: boolean;
+  microphone: boolean;
+  simulation: boolean;
+}
 
 async function post<T>(url: string, body: unknown, keepalive = false): Promise<T> {
   const response = await fetch(url, {
@@ -175,6 +188,7 @@ export function ExamRunner({
   initialAnswers,
   deadlineAt,
   serverNow,
+  supervision,
 }: {
   attemptId: string;
   examId: string;
@@ -183,9 +197,11 @@ export function ExamRunner({
   initialAnswers: Record<string, SavedAnswer>;
   deadlineAt: string;
   serverNow: string;
+  supervision: Supervision;
 }) {
   const t = useTranslations("studentExams.attempt");
   const tBank = useTranslations("questionBank");
+  const tProctoring = useTranslations("proctoring");
   const router = useRouter();
 
   // Se monta solo en el navegador (ver exam-runner-client.tsx): puede leer la copia local.
@@ -209,6 +225,7 @@ export function ExamRunner({
   const [announcement, setAnnouncement] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
 
   const offset = useRef(0);
   const deadline = useRef(new Date(deadlineAt).getTime());
@@ -238,6 +255,42 @@ export function ExamRunner({
     }),
   );
 
+  // Eventos de supervisión: copia local y envío por lotes (un lote vacío es señal de vida).
+  const [events] = useState(() =>
+    createEventQueue({
+      transport: {
+        send: async (batch, { keepalive }) => {
+          try {
+            return await post<{ accepted: number }>(
+              `/api/attempts/${attemptId}/events`,
+              { clientId: getClientId(), sentAt: new Date().toISOString(), events: batch },
+              keepalive,
+            );
+          } catch (error) {
+            throw error instanceof SyncHttpError ? new QueueHttpError(error.status) : error;
+          }
+        },
+      },
+      storage: {
+        load: () => {
+          try {
+            return JSON.parse(localStorage.getItem(eventsKey(attemptId)) ?? "[]") as ClientEvent[];
+          } catch {
+            return [];
+          }
+        },
+        store: (pending) => {
+          try {
+            if (pending.length) localStorage.setItem(eventsKey(attemptId), JSON.stringify(pending));
+            else localStorage.removeItem(eventsKey(attemptId));
+          } catch {
+            // Sin almacenamiento local: los eventos se envían igual.
+          }
+        },
+      },
+    }),
+  );
+
   const answeredCount = useMemo(
     () => questions.filter((question) => isAnswered(question.type, answers[question.id]?.value)).length,
     [answers, questions],
@@ -251,7 +304,7 @@ export function ExamRunner({
 
   async function finish(auto: boolean) {
     setSubmitting(true);
-    await sync.flush({ keepalive: auto });
+    await Promise.all([sync.flush({ keepalive: auto }), events.flush({ keepalive: auto })]);
     if (sync.hasPending() && !auto) {
       setSubmitting(false);
       toast.error(t("submitFailed"));
@@ -259,6 +312,7 @@ export function ExamRunner({
     }
     try {
       await post(`/api/attempts/${attemptId}/submit`, { clientId: getClientId(), auto });
+      events.stop();
       try {
         localStorage.removeItem(storageKey(attemptId));
       } catch {
@@ -372,6 +426,24 @@ export function ExamRunner({
     };
   }, [sync]);
 
+  // Detectores desde que abre la pantalla (el servidor acepta eventos de cualquier pestaña del
+  // estudiante mientras el intento siga abierto); se apagan si la pantalla queda bloqueada.
+  const supervising = supervision.enabled && !blocker;
+  useEffect(() => {
+    if (!supervising) return;
+    events.start();
+    return startDetectors({ doc: document, win: window }, (event) => events.push(event), { fullscreen: supervision.fullscreen });
+  }, [supervising, supervision.fullscreen, events]);
+
+  useEffect(() => {
+    const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      events.pause();
+    };
+  }, [events]);
+
   function change(questionId: string, value: unknown, delayMs: number) {
     const entry = { value, version: (answers[questionId]?.version ?? 0) + 1 };
     setAnswers((current) => ({ ...current, [questionId]: entry }));
@@ -392,7 +464,7 @@ export function ExamRunner({
   }[saveState];
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-5xl flex-col">
+    <div className="mx-auto flex min-h-svh max-w-5xl flex-col" data-supervision={supervising ? "active" : "off"}>
       <header className="sticky top-0 z-10 border-b bg-background/95 px-4 py-3 backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
@@ -402,6 +474,12 @@ export function ExamRunner({
             </p>
           </div>
           <div className="flex items-center gap-4">
+            {supervision.fullscreen && !fullscreen ? (
+              <Button variant="outline" size="sm" onClick={() => void document.documentElement.requestFullscreen?.().catch(() => undefined)}>
+                <Expand />
+                <span className="hidden sm:inline">{tProctoring("fullscreen.enter")}</span>
+              </Button>
+            ) : null}
             <p className={cn("flex items-center gap-1.5 text-xs", saveState === "offline" || saveState === "retrying" ? "text-amber-700" : "text-muted-foreground")} data-testid="save-state">
               {saveState === "saving" ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
               {saveState === "offline" ? <CloudOff className="size-3.5" aria-hidden /> : null}
@@ -489,6 +567,17 @@ export function ExamRunner({
           </Button>
         </aside>
       </div>
+
+      {supervision.simulation && !blocker ? (
+        <SimulatorPanel
+          camera={supervision.camera}
+          microphone={supervision.microphone}
+          onEmit={(event) => {
+            events.push(event);
+            void events.flush();
+          }}
+        />
+      ) : null}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>

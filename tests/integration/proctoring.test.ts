@@ -168,6 +168,26 @@ describe.skipIf(!hasDatabase)("supervisión: sesiones y eventos", () => {
     expect(session.events.filter((e) => e.type === "WINDOW_BLUR")).toHaveLength(1);
   });
 
+  it("el monitoreo muestra estado, conexión, conteos y últimos eventos", async () => {
+    const { getExamMonitor } = await import("@/modules/proctoring/monitor");
+    // Beto (en curso) mandó señal de vida hace 10 s; Ana ya entregó.
+    await proctoring.ingestEvents(beto, ids.beto as string, { clientId: "tablet-beto", sentAt: at(55).toISOString(), events: [] }, at(55));
+    const monitor = await getExamMonitor(teacher, ids.demo as string, new Date(at(55).getTime() + 10_000));
+    expect(monitor.summary).toEqual({ inProgress: 1, submitted: 1, notStarted: 0 });
+    const anaRow = monitor.rows.find((row) => row.student.id === ana.id)!;
+    expect(anaRow.attempt?.status).toBe("SUBMITTED");
+    expect(anaRow.attempt?.session?.counts).toMatchObject({ FOCUS: 2, ACTIVITY: 1, VISION: 1, EXAM: 2 });
+    expect(anaRow.attempt?.session?.online).toBe(false);
+    const betoRow = monitor.rows.find((row) => row.student.id === beto.id)!;
+    expect(betoRow.attempt?.session).toMatchObject({ online: true, cameraEnabled: false });
+    expect(betoRow.attempt?.session?.lastEvents[0]?.type).toBe("DEVICE_SWITCHED");
+
+    // Sin señal de vida por más de 30 s, ya no figura como conectado.
+    const later = await getExamMonitor(teacher, ids.demo as string, new Date(at(55).getTime() + 45_000));
+    expect(later.rows.find((row) => row.student.id === beto.id)?.attempt?.session?.online).toBe(false);
+    await expect(getExamMonitor(ana, ids.demo as string, at(56))).rejects.toMatchObject({ status: 403 });
+  });
+
   it("valida el lote y el alcance", async () => {
     await expect(proctoring.ingestEvents(beto, ids.beto as string, { clientId: "x", sentAt: "ayer", events: [] }, at(60))).rejects.toMatchObject({
       status: 400,

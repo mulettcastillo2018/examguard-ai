@@ -31,6 +31,7 @@ export default async function TakeExamPage({ params }: PageProps<"/take/[attempt
       initialAnswers={view.answers as Record<string, { value: unknown; version: number }>}
       deadlineAt={view.attempt.deadlineAt.toISOString()}
       serverNow={view.serverNow.toISOString()}
+      supervision={view.supervision}
     />
   );
 }

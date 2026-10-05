@@ -330,14 +330,15 @@ export async function getAttemptForStudent(actor: CurrentUser, attemptId: string
     await finalizeAttempt(attempt, now, true, null);
     attempt = await prisma.examAttempt.findUniqueOrThrow({ where: { id: attemptId } });
   }
-  const [exam, questions, answers] = await Promise.all([
-    prisma.exam.findUniqueOrThrow({ where: { id: attempt.examId }, select: { id: true, title: true, instructions: true } }),
+  const [exam, questions, answers, session] = await Promise.all([
+    prisma.exam.findUniqueOrThrow({ where: { id: attempt.examId }, select: { id: true, title: true, instructions: true, simulationEnabled: true } }),
     // Sin answerKey: la selección explícita hace imposible enviarla por error.
     prisma.examQuestion.findMany({
       where: { examId: attempt.examId },
       select: { id: true, type: true, prompt: true, points: true, options: true },
     }),
     prisma.answer.findMany({ where: { attemptId }, select: { examQuestionId: true, value: true, version: true } }),
+    prisma.proctoringSession.findUnique({ where: { attemptId } }),
   ]);
   const byId = new Map(questions.map((question) => [question.id, question]));
   const ordered = attempt.questionOrder.map((id) => byId.get(id)).filter((question) => question !== undefined);
@@ -358,6 +359,14 @@ export async function getAttemptForStudent(actor: CurrentUser, attemptId: string
       options: ((question.options as { id: string; label: string }[] | null) ?? []).map(({ id, label }) => ({ id, label })),
     })),
     answers: Object.fromEntries(answers.map((answer) => [answer.examQuestionId, { value: answer.value, version: answer.version }])),
+    // Qué supervisa la pantalla: solo lo pedido por el examen y autorizado por el estudiante.
+    supervision: {
+      enabled: Boolean(session),
+      fullscreen: session?.fullscreenRequested ?? false,
+      camera: session?.cameraEnabled ?? false,
+      microphone: session?.microphoneEnabled ?? false,
+      simulation: exam.simulationEnabled,
+    },
     serverNow: now,
   };
 }

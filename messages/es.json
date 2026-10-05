@@ -588,7 +588,8 @@
         "generic": "Revisa el ajuste."
       }
     },
-    "resultsLink": "Resultados"
+    "resultsLink": "Resultados",
+    "monitorLink": "Monitoreo en vivo"
   },
   "studentExams": {
     "title": "Mis exámenes",
@@ -865,6 +866,56 @@
     "minutes": "{minutes, number} min",
     "minutesSeconds": "{minutes, number} min {seconds, number} s",
     "pasted": "{length, plural, one {# carácter} other {# caracteres}}",
-    "confidence": "confianza {value, number, percent}"
+    "confidence": "confianza {value, number, percent}",
+    "simulator": {
+      "title": "Simulador de supervisión",
+      "description": "Modo demostración: genera eventos marcados como simulados para ver cómo los registra el sistema.",
+      "open": "Abrir simulador",
+      "close": "Cerrar simulador",
+      "needsCamera": "Requiere la cámara autorizada",
+      "needsMicrophone": "Requiere el micrófono autorizado",
+      "sent": "Evento simulado: {type}"
+    },
+    "fullscreen": {
+      "enter": "Pantalla completa",
+      "requested": "Este examen pide pantalla completa."
+    },
+    "monitoringNotice": "Supervisión activa"
+  },
+  "monitor": {
+    "title": "Monitoreo en vivo",
+    "link": "Monitoreo en vivo",
+    "description": "Se actualiza cada 5 segundos. Los eventos son hechos con su hora: ninguno, por sí solo, significa nada; la revisión la hace una persona.",
+    "back": "Volver al examen",
+    "updated": "Actualizado a las {time}",
+    "paused": "En pausa mientras esta pestaña está oculta",
+    "failed": "No se pudo actualizar; se reintenta en unos segundos.",
+    "summary": "{inProgress, plural, one {# presentando} other {# presentando}} · {submitted, plural, one {# entregó} other {# entregaron}} · {notStarted, plural, one {# sin empezar} other {# sin empezar}}",
+    "status": {
+      "notStarted": "Sin empezar",
+      "IN_PROGRESS": "Presentando",
+      "SUBMITTED": "Entregó",
+      "AUTO_SUBMITTED": "Entregado por tiempo"
+    },
+    "online": "Conectado",
+    "offline": "Sin señal",
+    "timeLeft": "{time} restantes",
+    "progress": "{answered} de {total} respondidas",
+    "events": "{count, plural, =0 {Sin eventos} one {# evento} other {# eventos}}",
+    "camera": "Cámara {state}",
+    "microphone": "Micrófono {state}",
+    "authorized": "autorizada",
+    "notAuthorized": "no autorizada",
+    "microphoneAuthorized": "autorizado",
+    "microphoneNotAuthorized": "no autorizado",
+    "showEvents": "Ver eventos de {name}",
+    "hideEvents": "Ocultar eventos de {name}",
+    "lastEvents": "Últimos eventos",
+    "device": "{browser} en {os}",
+    "columns": {
+      "student": "Estudiante",
+      "state": "Estado",
+      "lastEvent": "Último evento"
+    }
   }
 }

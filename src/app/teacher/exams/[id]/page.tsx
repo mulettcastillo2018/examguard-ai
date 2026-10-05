@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ChartColumn, Plus } from "lucide-react";
+import { Activity, ChartColumn, Plus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,14 @@ export default async function ExamBuilderPage({ params }: PageProps<"/teacher/ex
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <ExamStatusBadge status={exam.status} />
+            {exam.status === "PUBLISHED" ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/teacher/exams/${exam.id}/monitor`}>
+                  <Activity />
+                  {t("monitorLink")}
+                </Link>
+              </Button>
+            ) : null}
             {isDraft ? null : (
               <Button asChild variant="outline" size="sm">
                 <Link href={`/teacher/exams/${exam.id}/results`}>
