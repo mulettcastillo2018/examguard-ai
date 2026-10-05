@@ -9,7 +9,8 @@ import { NotFoundError } from "@/lib/errors";
 import { requirePageUser } from "@/modules/auth/session";
 import type { QuestionType } from "@/modules/question-bank/content";
 import { getQuestion, getQuestionFacets } from "@/modules/question-bank/question-bank";
-import { QuestionEditor, type QuestionDraft } from "../question-editor";
+import { QuestionEditor, type QuestionDraft } from "@/components/questions/question-editor";
+import { saveQuestionAction } from "../actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("questionBank");
@@ -53,7 +54,12 @@ export default async function EditQuestionPage({ params }: PageProps<"/teacher/q
       ) : null}
       <Card>
         <CardContent>
-          <QuestionEditor questionId={question.id} initial={draft} categories={categories} />
+          <QuestionEditor
+            initial={draft}
+            categories={categories}
+            save={saveQuestionAction.bind(null, question.id)}
+            returnTo="/teacher/question-bank"
+          />
         </CardContent>
       </Card>
     </>

@@ -371,7 +371,8 @@
       "save": "Guardar pregunta",
       "saving": "Guardando…",
       "cancel": "Cancelar",
-      "keyNotice": "La respuesta correcta se guarda aparte y nunca se envía al navegador del estudiante."
+      "keyNotice": "La respuesta correcta se guarda aparte y nunca se envía al navegador del estudiante.",
+      "saveToBank": "Guardar también en mi banco de preguntas"
     },
     "errors": {
       "prompt": "Escribe el enunciado (mínimo 3 caracteres).",
@@ -386,6 +387,194 @@
       "category": "La categoría admite hasta 60 caracteres.",
       "tags": "Hasta 10 etiquetas de 30 caracteres.",
       "generic": "Revisa los campos marcados."
+    }
+  },
+  "exams": {
+    "title": "Exámenes",
+    "description": "Los exámenes de tus cursos. Un borrador se edita libremente; al publicarlo, su configuración y sus preguntas quedan congeladas.",
+    "new": "Nuevo examen",
+    "newTitle": "Nuevo examen",
+    "back": "Volver a exámenes",
+    "empty": "Todavía no hay exámenes en tus cursos. Crea el primero.",
+    "noCourses": "Aún no dictas ningún curso. Pide a la administración que te asigne uno para crear exámenes.",
+    "columns": {
+      "title": "Examen",
+      "course": "Curso",
+      "status": "Estado",
+      "window": "Disponible",
+      "questions": "Preguntas"
+    },
+    "status": {
+      "DRAFT": "Borrador",
+      "PUBLISHED": "Publicado",
+      "CLOSED": "Cerrado",
+      "ARCHIVED": "Archivado"
+    },
+    "noWindow": "Sin fecha",
+    "questionsSummary": "{count, plural, =0 {Sin preguntas} one {# pregunta} other {# preguntas}} · {points, plural, one {# punto} other {# puntos}}",
+    "actions": "Acciones",
+    "open": "Abrir",
+    "duplicate": "Duplicar",
+    "delete": "Eliminar borrador",
+    "duplicated": "Examen duplicado como borrador.",
+    "deleted": "Borrador eliminado.",
+    "deleteConfirm": {
+      "title": "¿Eliminar este borrador?",
+      "description": "Se borran el examen, sus preguntas y sus ajustes. Las preguntas de tu banco no se tocan.",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar"
+    },
+    "settings": {
+      "heading": "Configuración",
+      "title": "Título",
+      "description": "Descripción",
+      "descriptionHint": "La ven los estudiantes en su lista de exámenes.",
+      "instructions": "Instrucciones",
+      "instructionsHint": "Se muestran al estudiante antes de empezar.",
+      "course": "Curso",
+      "chooseCourse": "Elige un curso",
+      "startsAt": "Disponible desde",
+      "endsAt": "Disponible hasta",
+      "windowHint": "Hora de Colombia. Mientras sea borrador puedes dejarlas vacías.",
+      "duration": "Duración (minutos)",
+      "durationHint": "Cada estudiante tiene este tiempo desde que empieza, sin pasar del cierre.",
+      "attempts": "Intentos permitidos",
+      "shuffle": "Mostrar las preguntas en orden aleatorio a cada estudiante",
+      "proctoring": "Supervisión",
+      "proctoringHint": "Lo solicitado se le pide al estudiante. Puede negarse a la cámara y al micrófono y presentar igual: negarse no genera alertas.",
+      "signals": {
+        "camera": "Cámara",
+        "microphone": "Micrófono",
+        "fullscreen": "Pantalla completa"
+      },
+      "levels": {
+        "requested": "Solicitar",
+        "off": "No usar"
+      },
+      "create": "Crear borrador",
+      "save": "Guardar configuración",
+      "saving": "Guardando…",
+      "created": "Borrador creado. Ahora agrega las preguntas.",
+      "saved": "Configuración guardada.",
+      "cancel": "Cancelar",
+      "errors": {
+        "title": "Escribe un título (mínimo 3 caracteres).",
+        "description": "La descripción admite hasta 2000 caracteres.",
+        "instructions": "Las instrucciones admiten hasta 4000 caracteres.",
+        "course": "Elige uno de tus cursos.",
+        "startsAt": "La fecha y hora de apertura no son válidas.",
+        "endsAt": "La fecha y hora de cierre no son válidas.",
+        "windowOrder": "El cierre debe ser después de la apertura.",
+        "duration": "La duración va de 5 a 600 minutos, en números enteros.",
+        "attempts": "Entre 1 y 5 intentos.",
+        "generic": "Revisa los campos marcados."
+      }
+    },
+    "summary": {
+      "course": "Curso",
+      "window": "Disponible",
+      "duration": "Duración",
+      "durationValue": "{minutes} minutos",
+      "attempts": "Intentos",
+      "shuffle": "Orden aleatorio",
+      "yes": "Sí",
+      "no": "No",
+      "instructions": "Instrucciones",
+      "none": "—"
+    },
+    "questions": {
+      "heading": "Preguntas",
+      "summary": "{count, plural, =0 {Sin preguntas} one {# pregunta} other {# preguntas}} · {points, plural, one {# punto} other {# puntos}} en total",
+      "empty": "El examen no tiene preguntas. Agrégalas desde tu banco o crea una nueva.",
+      "addFromBank": "Agregar del banco",
+      "create": "Nueva pregunta",
+      "number": "Pregunta {number}",
+      "moveUp": "Subir la pregunta {number}",
+      "moveDown": "Bajar la pregunta {number}",
+      "actions": "Acciones de la pregunta {number}",
+      "edit": "Editar",
+      "duplicate": "Duplicar",
+      "remove": "Quitar",
+      "removed": "Pregunta quitada del examen.",
+      "duplicatedMsg": "Pregunta duplicada.",
+      "removeConfirm": {
+        "title": "¿Quitar la pregunta {number}?",
+        "description": "Sale de este examen. Si vino de tu banco, allá sigue igual.",
+        "confirm": "Quitar",
+        "cancel": "Cancelar"
+      },
+      "invalid": "Esta pregunta tiene un problema: ábrela y guárdala de nuevo.",
+      "frozen": "Congeladas al publicar: así todos los estudiantes presentan exactamente el mismo examen.",
+      "correct": "Correcta",
+      "answer": "Respuesta: {value}",
+      "trueLabel": "Verdadero",
+      "falseLabel": "Falso",
+      "accepted": "Respuestas aceptadas: {values}",
+      "manual": "Se califica a mano",
+      "newTitle": "Nueva pregunta del examen",
+      "editTitle": "Editar pregunta del examen",
+      "copyNotice": "Editas la copia de este examen: la pregunta de tu banco no cambia.",
+      "back": "Volver al examen"
+    },
+    "bank": {
+      "title": "Agregar preguntas del banco",
+      "description": "Se copian al final del examen. Después puedes editarlas aquí sin cambiar tu banco.",
+      "search": "Buscar en el enunciado",
+      "allTypes": "Todos los tipos",
+      "type": "Tipo",
+      "alreadyAdded": "Ya está en el examen",
+      "empty": "No hay preguntas que coincidan.",
+      "emptyBank": "Tu banco está vacío. Crea preguntas en el banco o una nueva dentro del examen.",
+      "add": "{count, plural, =0 {Agregar} one {Agregar # pregunta} other {Agregar # preguntas}}",
+      "cancel": "Cancelar",
+      "added": "{count, plural, one {# pregunta agregada.} other {# preguntas agregadas.}}"
+    },
+    "publish": {
+      "heading": "Publicación",
+      "ready": "Todo listo para publicar.",
+      "missing": "Para publicar falta:",
+      "problems": {
+        "noWindow": "Definir la fecha y hora de apertura y de cierre.",
+        "windowEnded": "Que el cierre quede en el futuro.",
+        "durationExceedsWindow": "Que la duración quepa entre la apertura y el cierre.",
+        "noQuestions": "Agregar al menos una pregunta.",
+        "invalidQuestion": "Corregir las preguntas marcadas."
+      },
+      "publish": "Publicar examen",
+      "confirmTitle": "¿Publicar el examen?",
+      "confirmDescription": "Los estudiantes del curso lo verán y podrán presentarlo dentro de la ventana. La configuración y las preguntas quedan congeladas; mientras no empiece, puedes volver a borrador.",
+      "confirm": "Publicar",
+      "cancel": "Cancelar",
+      "published": "Examen publicado.",
+      "publishedOn": "Publicado el {date}.",
+      "unpublish": "Volver a borrador",
+      "unpublishHint": "Puedes volver a borrador hasta que empiece el examen.",
+      "unpublishConfirm": {
+        "title": "¿Volver a borrador?",
+        "description": "Los estudiantes dejarán de verlo hasta que lo publiques de nuevo.",
+        "confirm": "Volver a borrador",
+        "cancel": "Cancelar"
+      },
+      "unpublished": "El examen volvió a borrador.",
+      "started": "El examen ya empezó: su configuración y sus preguntas no se pueden cambiar."
+    },
+    "accommodations": {
+      "heading": "Ajustes por estudiante",
+      "description": "Tiempo extra o exención de cámara para quien lo necesite (discapacidad, conexión, acuerdos con orientación). Se pueden cambiar también con el examen publicado.",
+      "student": "Estudiante",
+      "extraMinutes": "Minutos extra",
+      "cameraExempt": "Sin cámara",
+      "note": "Nota",
+      "save": "Guardar",
+      "saved": "Ajuste de {name} guardado.",
+      "noStudents": "El curso no tiene estudiantes matriculados.",
+      "fieldFor": "{field} de {name}",
+      "locked": "El examen ya cerró: los ajustes no se pueden cambiar.",
+      "errors": {
+        "extraMinutes": "Los minutos extra van de 0 a 600, en números enteros.",
+        "note": "La nota admite hasta 300 caracteres.",
+        "generic": "Revisa el ajuste."
+      }
     }
   }
 }

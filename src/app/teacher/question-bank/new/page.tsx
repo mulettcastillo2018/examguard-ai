@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { requirePageUser } from "@/modules/auth/session";
 import { getQuestionFacets } from "@/modules/question-bank/question-bank";
-import { QuestionEditor } from "../question-editor";
+import { QuestionEditor } from "@/components/questions/question-editor";
+import { saveQuestionAction } from "../actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("questionBank");
@@ -25,7 +26,7 @@ export default async function NewQuestionPage() {
       <PageHeader title={t("newTitle")} />
       <Card>
         <CardContent>
-          <QuestionEditor categories={categories} />
+          <QuestionEditor categories={categories} save={saveQuestionAction.bind(null, null)} returnTo="/teacher/question-bank" />
         </CardContent>
       </Card>
     </>

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useHydrated } from "@/hooks/use-hydrated";
+import type { ActionResult } from "@/lib/action";
 import { cn } from "@/lib/utils";
 import {
   CHOICE_TYPES,
@@ -25,7 +26,6 @@ import {
   type QuestionInput,
   type QuestionType,
 } from "@/modules/question-bank/content";
-import { saveQuestionAction } from "./actions";
 
 export interface QuestionDraft {
   type: QuestionType;
@@ -37,20 +37,34 @@ export interface QuestionDraft {
   tags: string[];
 }
 
+/** Guarda la pregunta: en el banco o como copia dentro de un examen. */
+export type SaveQuestion = (input: QuestionInput, options: { saveToBank: boolean }) => Promise<ActionResult<{ id: string }>>;
+
 const blankOptions = () => [
   { id: newOptionId(), label: "" },
   { id: newOptionId(), label: "" },
 ];
 
-/** Formulario para crear o editar una pregunta del banco, con sus campos según el tipo. */
+/**
+ * Formulario de una pregunta, con sus campos según el tipo. Lo usan el banco (con
+ * categoría y etiquetas) y el constructor de exámenes (la copia del examen no las tiene).
+ */
 export function QuestionEditor({
-  questionId,
   initial,
-  categories,
+  categories = [],
+  save,
+  returnTo,
+  showMeta = true,
+  offerBankCopy = false,
 }: {
-  questionId?: string;
   initial?: QuestionDraft;
-  categories: string[];
+  categories?: string[];
+  save: SaveQuestion;
+  /** Página a la que vuelve al guardar o cancelar. */
+  returnTo: string;
+  showMeta?: boolean;
+  /** Pregunta nueva dentro de un examen: ofrece guardarla también en el banco. */
+  offerBankCopy?: boolean;
 }) {
   const t = useTranslations("questionBank");
   const router = useRouter();
@@ -68,6 +82,7 @@ export function QuestionEditor({
   const [rubric, setRubric] = useState((initial?.answerKey.rubric as string | undefined) ?? "");
   const [category, setCategory] = useState(initial?.category ?? "");
   const [tags, setTags] = useState((initial?.tags ?? []).join(", "));
+  const [saveToBank, setSaveToBank] = useState(true);
   const [pending, setPending] = useState(false);
   const [problems, setProblems] = useState<{ fields: string[]; codes: string[] }>({ fields: [], codes: [] });
 
@@ -116,7 +131,7 @@ export function QuestionEditor({
 
     setPending(true);
     setProblems({ fields: [], codes: [] });
-    const result = await saveQuestionAction(questionId ?? null, input);
+    const result = await save(input, { saveToBank: offerBankCopy && saveToBank });
     setPending(false);
     if (!result.ok) {
       setProblems({ fields: result.fields ?? [], codes: result.codes ?? [] });
@@ -124,8 +139,8 @@ export function QuestionEditor({
       return;
     }
     toast.success(t("saved"));
-    // revalidatePath ya invalidó la lista: basta con navegar (un refresh aquí la pediría dos veces).
-    router.push("/teacher/question-bank");
+    // revalidatePath ya invalidó la página de destino: basta con navegar (un refresh la pediría dos veces).
+    router.push(returnTo);
   }
 
   const has = (field: string) => problems.fields.includes(field);
@@ -291,28 +306,39 @@ export function QuestionEditor({
             />
             <p className="text-xs text-muted-foreground">{t("editor.pointsHint")}</p>
           </div>
-          <div className="grid content-start gap-2">
-            <Label htmlFor="q-category">{t("editor.category")}</Label>
-            <Input
-              id="q-category"
-              list="q-categories"
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              placeholder={t("editor.categoryPlaceholder")}
-              aria-invalid={has("category")}
-            />
-            <datalist id="q-categories">
-              {categories.map((value) => (
-                <option key={value} value={value} />
-              ))}
-            </datalist>
-          </div>
-          <div className="grid content-start gap-2">
-            <Label htmlFor="q-tags">{t("editor.tags")}</Label>
-            <Input id="q-tags" value={tags} onChange={(event) => setTags(event.target.value)} aria-invalid={has("tags")} />
-            <p className="text-xs text-muted-foreground">{t("editor.tagsHint")}</p>
-          </div>
+          {showMeta ? (
+            <>
+              <div className="grid content-start gap-2">
+                <Label htmlFor="q-category">{t("editor.category")}</Label>
+                <Input
+                  id="q-category"
+                  list="q-categories"
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value)}
+                  placeholder={t("editor.categoryPlaceholder")}
+                  aria-invalid={has("category")}
+                />
+                <datalist id="q-categories">
+                  {categories.map((value) => (
+                    <option key={value} value={value} />
+                  ))}
+                </datalist>
+              </div>
+              <div className="grid content-start gap-2">
+                <Label htmlFor="q-tags">{t("editor.tags")}</Label>
+                <Input id="q-tags" value={tags} onChange={(event) => setTags(event.target.value)} aria-invalid={has("tags")} />
+                <p className="text-xs text-muted-foreground">{t("editor.tagsHint")}</p>
+              </div>
+            </>
+          ) : null}
         </div>
+
+        {offerBankCopy ? (
+          <Label className="flex items-center gap-2 font-normal">
+            <Checkbox checked={saveToBank} onCheckedChange={(checked) => setSaveToBank(checked === true)} />
+            {t("editor.saveToBank")}
+          </Label>
+        ) : null}
 
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <KeyRound className="size-3.5" aria-hidden />
@@ -336,7 +362,7 @@ export function QuestionEditor({
             {pending ? t("editor.saving") : t("editor.save")}
           </Button>
           <Button asChild type="button" variant="outline">
-            <Link href="/teacher/question-bank">{t("editor.cancel")}</Link>
+            <Link href={returnTo}>{t("editor.cancel")}</Link>
           </Button>
         </div>
       </fieldset>
