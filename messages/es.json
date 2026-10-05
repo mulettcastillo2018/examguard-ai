@@ -240,7 +240,14 @@
       "QUESTION_CREATED": "Creó una pregunta",
       "QUESTION_UPDATED": "Editó una pregunta",
       "QUESTION_ARCHIVED": "Archivó una pregunta",
-      "QUESTION_RESTORED": "Restauró una pregunta"
+      "QUESTION_RESTORED": "Restauró una pregunta",
+      "EXAM_CREATED": "Creó un examen",
+      "EXAM_UPDATED": "Editó la configuración de un examen",
+      "EXAM_QUESTIONS_CHANGED": "Cambió las preguntas de un examen",
+      "EXAM_PUBLISHED": "Publicó un examen",
+      "EXAM_UNPUBLISHED": "Volvió un examen a borrador",
+      "EXAM_DELETED": "Eliminó un borrador de examen",
+      "ACCOMMODATION_UPDATED": "Cambió los ajustes de un estudiante en un examen"
     },
     "entities": {
       "Session": "Sesión",

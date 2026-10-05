@@ -6,6 +6,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { createCredentialUser } from "@/modules/auth/credentials";
+import { dateToZonedInput, zonedInputToDate } from "@/lib/time";
 import { questionInputSchema, type QuestionInput } from "@/modules/question-bank/content";
 
 const DEMO_SLUG = "demo-los-andes";
@@ -139,6 +140,8 @@ async function removeDemoInstitution() {
   // Orden inverso a las dependencias; sesiones y cuentas caen en cascada con el usuario.
   await prisma.auditLog.deleteMany({ where: { institutionId } });
   await prisma.question.deleteMany({ where: { institutionId } });
+  // Preguntas y ajustes de cada examen caen en cascada con él.
+  await prisma.exam.deleteMany({ where: { institutionId } });
   await prisma.course.deleteMany({ where: { institutionId } });
   await prisma.user.deleteMany({ where: { institutionId } });
   await prisma.policy.deleteMany({ where: { institutionId } });
@@ -190,10 +193,11 @@ async function main() {
     studentIds.push(user.id);
   }
 
+  const courseIds = new Map<string, string>();
   for (const course of COURSES) {
     const teacherId = teacherIds.get(course.teacher);
     if (!teacherId) throw new Error(`Docente desconocido: ${course.teacher}`);
-    await prisma.course.create({
+    const created = await prisma.course.create({
       data: {
         institutionId: institution.id,
         code: course.code,
@@ -209,16 +213,18 @@ async function main() {
         },
       },
     });
+    courseIds.set(course.code, created.id);
   }
 
   let questionCount = 0;
+  const bank = new Map<string, Awaited<ReturnType<typeof prisma.question.create>>[]>();
   for (const [key, questions] of Object.entries(QUESTIONS)) {
     const ownerId = teacherIds.get(key);
     if (!ownerId) throw new Error(`Docente desconocido: ${key}`);
     for (const input of questions) {
       // Se valida con el mismo esquema de la aplicación para que la demo nunca tenga datos inválidos.
       const question = questionInputSchema.parse(input);
-      await prisma.question.create({
+      const created = await prisma.question.create({
         data: {
           institutionId: institution.id,
           ownerId,
@@ -231,12 +237,70 @@ async function main() {
           tags: question.tags,
         },
       });
+      bank.set(key, [...(bank.get(key) ?? []), created]);
       questionCount++;
     }
   }
 
+  // Exámenes del docente de matemáticas: uno publicado para la próxima semana (con
+  // ajustes para dos estudiantes) y un borrador. Las preguntas son copias del banco.
+  const mathTeacher = teacherIds.get("mat");
+  const mathCourse = courseIds.get("MAT-11A");
+  const mathBank = bank.get("mat") ?? [];
+  if (!mathTeacher || !mathCourse) throw new Error("Falta el docente o el curso de matemáticas");
+  const copies = (questions: typeof mathBank) =>
+    questions.map((question, index) => ({
+      sourceQuestionId: question.id,
+      position: index + 1,
+      type: question.type,
+      prompt: question.prompt,
+      options: question.options as Prisma.InputJsonValue,
+      answerKey: question.answerKey as Prisma.InputJsonValue,
+      points: question.points,
+    }));
+  const nextWeek = dateToZonedInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).slice(0, 10);
+  const publishedExam = await prisma.exam.create({
+    data: {
+      institutionId: institution.id,
+      courseId: mathCourse,
+      createdById: mathTeacher,
+      title: "Parcial de matemáticas — primer corte",
+      description: "Derivadas, números primos, geometría y ecuaciones.",
+      instructions: "Tienes 60 minutos. Puedes usar calculadora. Lee cada pregunta con calma antes de responder.",
+      status: "PUBLISHED",
+      startsAt: zonedInputToDate(`${nextWeek}T08:00`),
+      endsAt: zonedInputToDate(`${nextWeek}T12:00`),
+      durationMinutes: 60,
+      maxAttempts: 1,
+      shuffleQuestions: true,
+      proctoringConfig: { camera: "requested", microphone: "off", fullscreen: "requested" },
+      publishedAt: new Date(),
+      questions: { create: copies(mathBank) },
+    },
+  });
+  const isabella = studentIds[STUDENTS.findIndex((student) => student.email === "iquintero")];
+  const samuel = studentIds[STUDENTS.findIndex((student) => student.email === "sherrera")];
+  if (!isabella || !samuel) throw new Error("Faltan estudiantes para los ajustes");
+  await prisma.accommodation.createMany({
+    data: [
+      { examId: publishedExam.id, studentId: isabella, extraMinutes: 15, note: "Ajuste acordado con orientación escolar." },
+      { examId: publishedExam.id, studentId: samuel, cameraExempt: true, note: "No tiene cámara en casa." },
+    ],
+  });
+  await prisma.exam.create({
+    data: {
+      institutionId: institution.id,
+      courseId: mathCourse,
+      createdById: mathTeacher,
+      title: "Quiz de álgebra",
+      durationMinutes: 20,
+      proctoringConfig: { camera: "off", microphone: "off", fullscreen: "requested" },
+      questions: { create: copies(mathBank.filter((question) => question.category === "Álgebra")) },
+    },
+  });
+
   console.log(
-    `Demo lista: ${institution.name} · 1 rectora, ${TEACHERS.length} docentes, ${STUDENTS.length} estudiantes, ${COURSES.length} cursos, ${questionCount} preguntas.\n` +
+    `Demo lista: ${institution.name} · 1 rectora, ${TEACHERS.length} docentes, ${STUDENTS.length} estudiantes, ${COURSES.length} cursos, ${questionCount} preguntas, 2 exámenes.\n` +
       `Cuentas: rectoria@${EMAIL_DOMAIN}, ${TEACHERS.map((t) => `${t.email}@${EMAIL_DOMAIN}`).join(", ")}, ` +
       `${STUDENTS[0].email}@${EMAIL_DOMAIN} (y demás estudiantes). Contraseña: la de SEED_PASSWORD.`,
   );
