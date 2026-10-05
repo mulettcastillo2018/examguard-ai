@@ -477,7 +477,10 @@
         "duration": "La duración va de 5 a 600 minutos, en números enteros.",
         "attempts": "Entre 1 y 5 intentos.",
         "generic": "Revisa los campos marcados."
-      }
+      },
+      "simulation": "Modo demostración: mostrar al estudiante el simulador de eventos",
+      "simulationHint": "Para probar o enseñar la supervisión sin cámara real. Los eventos simulados quedan marcados como tales.",
+      "simulationShort": "Modo demostración"
     },
     "summary": {
       "course": "Curso",
@@ -821,5 +824,47 @@
       "adjust": "Ajustar puntos",
       "feedback": "Comentario"
     }
+  },
+  "proctoring": {
+    "types": {
+      "EXAM_STARTED": "Empezó el examen",
+      "EXAM_SUBMITTED": "Entregó el examen",
+      "EXAM_AUTO_SUBMITTED": "El examen se entregó al acabarse el tiempo",
+      "DEVICE_SWITCHED": "Continuó en otra pestaña o dispositivo",
+      "LOW_ACTIVITY": "Sin actividad en la página",
+      "PASTE": "Pegó texto",
+      "WINDOW_BLUR": "La ventana del examen perdió el foco",
+      "TAB_SWITCH": "Salió de la pestaña del examen",
+      "FULLSCREEN_EXIT": "Salió de pantalla completa",
+      "CONNECTION_LOST": "Sin conexión",
+      "FACE_NOT_VISIBLE": "Ningún rostro visible en la cámara",
+      "FACE_OUT_OF_FRAME": "Rostro fuera del encuadre",
+      "MULTIPLE_FACES": "Más de un rostro en la cámara",
+      "AUDIO_ACTIVITY": "Sonido detectado por el micrófono",
+      "MICROPHONE_DISCONNECTED": "Se desconectó el micrófono"
+    },
+    "categories": {
+      "EXAM": "Examen",
+      "ACTIVITY": "Actividad",
+      "FOCUS": "Foco",
+      "VISION": "Cámara",
+      "AUDIO": "Audio",
+      "CONNECTION": "Conexión"
+    },
+    "severity": {
+      "LOW": "Baja",
+      "MEDIUM": "Media",
+      "HIGH": "Alta"
+    },
+    "source": {
+      "BROWSER": "Navegador",
+      "SIMULATION": "Simulado",
+      "SERVER": "Servidor"
+    },
+    "seconds": "{seconds, number} s",
+    "minutes": "{minutes, number} min",
+    "minutesSeconds": "{minutes, number} min {seconds, number} s",
+    "pasted": "{length, plural, one {# carácter} other {# caracteres}}",
+    "confidence": "confianza {value, number, percent}"
   }
 }

@@ -52,6 +52,33 @@ enum ConsentGrantor {
   GUARDIAN
 }
 
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum EventCategory {
+  EXAM
+  ACTIVITY
+  FOCUS
+  VISION
+  AUDIO
+  CONNECTION
+}
+
+enum EventSource {
+  BROWSER
+  SIMULATION
+  SERVER
+}
+
+enum ReviewStatus {
+  NOT_REQUIRED
+  RECOMMENDED
+  REVIEWED
+}
+
 model Institution {
   id        String     @id @default(cuid())
   name      String
@@ -271,6 +298,8 @@ model Exam {
   closedAt           DateTime?
   // Las notas se ven solo cuando el docente las publica.
   resultsPublishedAt DateTime?
+  // Modo demostración: el estudiante ve un simulador de eventos (marcados como simulados).
+  simulationEnabled  Boolean         @default(false)
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   questions          ExamQuestion[]
@@ -314,19 +343,19 @@ model Accommodation {
 // Intento de un estudiante. El servidor fija la hora límite al empezar; el navegador
 // solo la muestra. Un solo dispositivo activo: el último que abre el intento.
 model ExamAttempt {
-  id             String         @id @default(cuid())
+  id             String             @id @default(cuid())
   examId         String
-  exam           Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  exam           Exam               @relation(fields: [examId], references: [id], onDelete: Cascade)
   studentId      String
-  student        User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student        User               @relation(fields: [studentId], references: [id], onDelete: Cascade)
   number         Int
-  status         AttemptStatus  @default(IN_PROGRESS)
-  startedAt      DateTime       @default(now())
+  status         AttemptStatus      @default(IN_PROGRESS)
+  startedAt      DateTime           @default(now())
   deadlineAt     DateTime
   submittedAt    DateTime?
   activeClientId String?
   // Veces que el intento pasó a otro dispositivo o pestaña (evidencia para la Fase 4).
-  clientSwitches Int            @default(0)
+  clientSwitches Int                @default(0)
   // Orden de las preguntas en este intento (aleatorio si el examen lo pide).
   questionOrder  String[]
   maxScore       Float
@@ -334,6 +363,7 @@ model ExamAttempt {
   gradingStatus  GradingStatus?
   answers        Answer[]
   consent        ConsentRecord?
+  proctoring     ProctoringSession?
 
   @@unique([examId, studentId, number])
   @@index([examId, status])
@@ -371,4 +401,47 @@ model ConsentRecord {
   microphone  Boolean
   grantedBy   ConsentGrantor?
   grantedAt   DateTime        @default(now())
+}
+
+// Supervisión de un intento: qué se autorizó y los eventos registrados. Solo hechos
+// observables con su hora; ningún evento por sí solo significa nada (docs/ANALISIS.md).
+model ProctoringSession {
+  id                  String            @id @default(cuid())
+  attemptId           String            @unique
+  attempt             ExamAttempt       @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  browser             String?
+  os                  String?
+  device              String?
+  cameraEnabled       Boolean           @default(false)
+  microphoneEnabled   Boolean           @default(false)
+  fullscreenRequested Boolean           @default(false)
+  reviewStatus        ReviewStatus      @default(NOT_REQUIRED)
+  startedAt           DateTime          @default(now())
+  endedAt             DateTime?
+  // Última señal de vida de la pantalla del examen (para el monitoreo en vivo).
+  lastSeenAt          DateTime?
+  lastEventAt         DateTime?
+  eventCount          Int               @default(0)
+  events              ProctoringEvent[]
+}
+
+model ProctoringEvent {
+  id            String            @id @default(cuid())
+  sessionId     String
+  session       ProctoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  // Lo genera el navegador: un reintento del mismo lote no duplica eventos.
+  clientEventId String
+  type          String
+  category      EventCategory
+  severity      Severity
+  // Reloj del navegador corregido con el desfase medido por el servidor.
+  occurredAt    DateTime
+  receivedAt    DateTime          @default(now())
+  durationSec   Int?
+  confidence    Float?
+  metadata      Json              @default("{}")
+  source        EventSource       @default(BROWSER)
+
+  @@unique([sessionId, clientEventId])
+  @@index([sessionId, occurredAt])
 }

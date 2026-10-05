@@ -36,6 +36,7 @@ export interface ExamSettingsDraft {
   maxAttempts: string;
   shuffleQuestions: boolean;
   proctoring: ProctoringConfig;
+  simulationEnabled: boolean;
 }
 
 // Valores de un borrador nuevo. No se exporta: un componente del servidor que importe un
@@ -51,6 +52,7 @@ const EMPTY_SETTINGS: ExamSettingsDraft = {
   maxAttempts: "1",
   shuffleQuestions: false,
   proctoring: { camera: "requested", microphone: "off", fullscreen: "requested" },
+  simulationEnabled: false,
 };
 
 const parseWhole = (text: string) => (/^\d+$/.test(text.trim()) ? Number(text.trim()) : Number.NaN);
@@ -93,6 +95,7 @@ export function ExamSettingsForm({
       maxAttempts: Number(draft.maxAttempts),
       shuffleQuestions: draft.shuffleQuestions,
       proctoring: draft.proctoring,
+      simulationEnabled: draft.simulationEnabled,
     };
     const local = examSettingsSchema.safeParse(input);
     if (!local.success || dateProblems.length) {
@@ -257,6 +260,13 @@ export function ExamSettingsForm({
               </RadioGroup>
             </div>
           ))}
+          <Label className="mt-1 flex items-start gap-2 font-normal">
+            <Checkbox className="mt-0.5" checked={draft.simulationEnabled} onCheckedChange={(checked) => set("simulationEnabled", checked === true)} />
+            <span className="grid gap-0.5">
+              {t("simulation")}
+              <span className="text-xs text-muted-foreground">{t("simulationHint")}</span>
+            </span>
+          </Label>
         </fieldset>
 
         {messages.length ? (

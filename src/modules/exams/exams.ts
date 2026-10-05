@@ -158,6 +158,7 @@ export async function createExam(actor: CurrentUser, input: ExamSettingsInput) {
       maxAttempts: settings.maxAttempts,
       shuffleQuestions: settings.shuffleQuestions,
       proctoringConfig: toJson(settings.proctoring),
+      simulationEnabled: settings.simulationEnabled,
     },
   });
   await audit(actor, "EXAM_CREATED", exam.id);
@@ -189,6 +190,7 @@ export async function updateExamSettings(actor: CurrentUser, examId: string, inp
         maxAttempts: settings.maxAttempts,
         shuffleQuestions: settings.shuffleQuestions,
         proctoringConfig: toJson(settings.proctoring),
+        simulationEnabled: settings.simulationEnabled,
       },
     });
   });
@@ -219,6 +221,7 @@ export async function duplicateExam(actor: CurrentUser, examId: string) {
       maxAttempts: source.maxAttempts,
       shuffleQuestions: source.shuffleQuestions,
       proctoringConfig: toJson(source.proctoringConfig),
+      simulationEnabled: source.simulationEnabled,
       questions: {
         create: questions.map((question) => ({
           sourceQuestionId: question.sourceQuestionId,

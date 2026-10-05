@@ -6,6 +6,7 @@ import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { recordAudit } from "@/modules/audit";
 import type { CurrentUser } from "@/modules/auth/session";
 import { readProctoringConfig } from "@/modules/exams/settings";
+import { recordServerEvent, serverEvent, type DeviceInfo } from "@/modules/proctoring/proctoring";
 import { assertCan } from "@/modules/rbac";
 import { parseAnswerValue } from "./answers";
 import { gradeAnswer, summarizeGrades } from "./grading";
@@ -65,6 +66,7 @@ async function finalizeAttempt(attempt: ExamAttempt, now: Date, auto: boolean, a
       },
     });
     if (updated.count === 0) return false;
+    await recordServerEvent(tx, attempt.id, auto ? "EXAM_AUTO_SUBMITTED" : "EXAM_SUBMITTED", auto ? attempt.deadlineAt : now);
     for (const { question, points: awarded } of points) {
       const existing = byQuestion.get(question.id);
       if (existing) {
@@ -210,6 +212,8 @@ function shuffled<T>(items: T[]): T[] {
 export interface StartInput {
   clientId: string;
   consent: { camera: boolean; microphone: boolean };
+  /** Navegador y sistema (del user agent), para el contexto de la revisión. */
+  device?: DeviceInfo;
 }
 
 /** Empieza un intento nuevo o retoma el que está en curso. Devuelve el id del intento. */
@@ -246,6 +250,22 @@ export async function startAttempt(actor: CurrentUser, examId: string, input: St
         maxScore: questions.reduce((sum, question) => sum + question.points, 0),
         consent: {
           create: { textVersion: lobby.consent.textVersion, camera, microphone, grantedBy: camera || microphone ? "STUDENT" : null, grantedAt: now },
+        },
+        // La supervisión solo usa lo autorizado: sin consentimiento, ni cámara ni micrófono.
+        proctoring: {
+          create: {
+            browser: input.device?.browser ?? null,
+            os: input.device?.os ?? null,
+            device: input.device?.device ?? null,
+            cameraEnabled: camera,
+            microphoneEnabled: microphone,
+            fullscreenRequested: lobby.requests.fullscreen,
+            startedAt: now,
+            lastSeenAt: now,
+            lastEventAt: now,
+            eventCount: 1,
+            events: { create: serverEvent("EXAM_STARTED", now) },
+          },
         },
       },
     });
@@ -289,6 +309,7 @@ export async function claimAttempt(actor: CurrentUser, attemptId: string, client
     data: { activeClientId: clientId, ...(switched ? { clientSwitches: { increment: 1 } } : {}) },
   });
   if (switched) {
+    await recordServerEvent(prisma, attemptId, "DEVICE_SWITCHED", now);
     await recordAudit({
       institutionId: actor.institutionId,
       actorId: actor.id,

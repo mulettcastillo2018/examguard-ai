@@ -101,6 +101,7 @@ export default async function ExamBuilderPage({ params }: PageProps<"/teacher/ex
                   maxAttempts: String(exam.maxAttempts),
                   shuffleQuestions: exam.shuffleQuestions,
                   proctoring: exam.proctoring,
+                  simulationEnabled: exam.simulationEnabled,
                 }}
               />
             ) : (
@@ -118,6 +119,8 @@ export default async function ExamBuilderPage({ params }: PageProps<"/teacher/ex
                 <dd>
                   {PROCTORING_SIGNALS.map((signal) => `${t(`settings.signals.${signal}`)}: ${t(`settings.levels.${exam.proctoring[signal]}`)}`).join(" · ")}
                 </dd>
+                <dt className="text-muted-foreground">{t("settings.simulationShort")}</dt>
+                <dd>{exam.simulationEnabled ? t("summary.yes") : t("summary.no")}</dd>
                 <dt className="text-muted-foreground">{t("summary.instructions")}</dt>
                 <dd className="whitespace-pre-line">{exam.instructions ?? t("summary.none")}</dd>
               </dl>

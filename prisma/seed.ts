@@ -314,6 +314,8 @@ async function main() {
       durationMinutes: 20,
       maxAttempts: 2,
       proctoringConfig: { camera: "requested", microphone: "off", fullscreen: "requested" },
+      // Con el simulador, la demo muestra todo el flujo de supervisión sin cámara real.
+      simulationEnabled: true,
       publishedAt: new Date(now),
       questions: { create: copies(mathBank) },
     },

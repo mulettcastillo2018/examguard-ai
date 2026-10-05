@@ -47,6 +47,8 @@ export const examSettingsSchema = z
     maxAttempts: z.number().int("attempts").min(1, "attempts").max(5, "attempts"),
     shuffleQuestions: z.boolean().default(false),
     proctoring: proctoringConfigSchema,
+    // Modo demostración: el estudiante ve el simulador de eventos (marcados como simulados).
+    simulationEnabled: z.boolean().default(false),
   })
   .superRefine((settings, ctx) => {
     if (settings.startsAt && settings.endsAt && settings.endsAt <= settings.startsAt) {
