@@ -43,3 +43,16 @@ describe("plurales en español", () => {
     expect(t("common.students", { count: 1 })).toBe("1 estudiante");
   });
 });
+
+describe("números en español", () => {
+  it("los puntajes usan coma decimal", async () => {
+    const { createTranslator } = await import("next-intl");
+    const t = createTranslator({ locale: "es", messages });
+    // Un argumento simple ({score}) saldría "3.5": los puntajes llevan ", number".
+    expect(t("examResults.detail.score", { score: 3.5, max: 7 })).toBe("3,5 de 7 puntos");
+    expect(t("studentExams.result.score", { score: 6.5, max: 7 })).toBe("6,5 de 7 puntos");
+    expect(t("studentExams.result.points", { awarded: 0.5, points: 1 })).toBe("0,5 de 1 punto");
+    expect(t("questionBank.points", { points: 1.5 })).toBe("1,5 puntos");
+    expect(t("studentExams.attempt.characters", { count: 120, max: 10_000 })).toBe("120 de 10.000 caracteres");
+  });
+});

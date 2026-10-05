@@ -7,28 +7,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConflictError, NotFoundError } from "@/lib/errors";
+import { describeAnswer } from "@/modules/attempts/describe";
 import { getStudentResult } from "@/modules/attempts/results";
 import { requirePageUser } from "@/modules/auth/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("studentExams.result");
   return { title: t("title") };
-}
-
-/** La respuesta del estudiante, en texto (sin marcar cuál era la correcta). */
-function describeAnswer(type: string, value: unknown, options: { id: string; label: string }[], labels: { trueLabel: string; falseLabel: string }) {
-  const data = (value ?? {}) as { optionId?: string | null; optionIds?: string[]; value?: boolean | null; text?: string };
-  const label = (id: string) => options.find((option) => option.id === id)?.label ?? id;
-  switch (type) {
-    case "SINGLE_CHOICE":
-      return data.optionId ? label(data.optionId) : null;
-    case "MULTIPLE_CHOICE":
-      return data.optionIds?.length ? data.optionIds.map(label).join(" · ") : null;
-    case "TRUE_FALSE":
-      return data.value == null ? null : data.value ? labels.trueLabel : labels.falseLabel;
-    default:
-      return data.text?.trim() ? data.text : null;
-  }
 }
 
 export default async function StudentResultPage({ params }: PageProps<"/student/exams/[id]/result">) {

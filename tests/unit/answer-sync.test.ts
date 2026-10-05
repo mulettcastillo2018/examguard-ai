@@ -50,7 +50,7 @@ describe("guardado automático", () => {
 
   it("espera a que el estudiante deje de escribir y envía solo la última versión", async () => {
     const { sync, server, states } = setup();
-    sync.setReady();
+    sync.setReady("pestana-1");
     sync.queue("q1", { value: { text: "B" }, version: 1 }, 1000);
     sync.queue("q1", { value: { text: "Bo" }, version: 2 }, 1000);
     sync.queue("q1", { value: { text: "Bogotá" }, version: 3 }, 1000);
@@ -66,14 +66,14 @@ describe("guardado automático", () => {
     sync.queue("q1", { value: { optionId: "a" }, version: 1 }, 0);
     await vi.advanceTimersByTimeAsync(10);
     expect(server.calls).toHaveLength(0);
-    sync.setReady();
+    sync.setReady("pestana-1");
     await vi.advanceTimersByTimeAsync(0);
     expect(server.calls).toHaveLength(1);
   });
 
   it("sin conexión guarda una copia local y reintenta", async () => {
     const { sync, server, states, local } = setup();
-    sync.setReady();
+    sync.setReady("pestana-1");
     server.failWith(new TypeError("Failed to fetch"));
     sync.queue("q1", { value: { value: true }, version: 1 }, 0);
     await vi.advanceTimersByTimeAsync(0);
@@ -88,7 +88,7 @@ describe("guardado automático", () => {
   it("recupera lo que quedó pendiente de una visita anterior", async () => {
     const pending = new Map([["q2", { value: { text: "pendiente" }, version: 4 }]]);
     const { sync, server } = setup(fakeServer(), pending);
-    sync.setReady();
+    sync.setReady("pestana-1");
     await vi.advanceTimersByTimeAsync(0);
     expect(server.stored.get("q2")).toEqual({ value: { text: "pendiente" }, version: 4 });
   });
@@ -97,7 +97,7 @@ describe("guardado automático", () => {
     const server = fakeServer();
     server.stored.set("q1", { value: { optionId: "viejo" }, version: 7 });
     const { sync } = setup(server);
-    sync.setReady();
+    sync.setReady("pestana-1");
     sync.queue("q1", { value: { optionId: "nuevo" }, version: 2 }, 0);
     await vi.advanceTimersByTimeAsync(0);
     expect(server.stored.get("q1")).toEqual({ value: { optionId: "nuevo" }, version: 8 });
@@ -105,7 +105,7 @@ describe("guardado automático", () => {
 
   it("se bloquea si el examen se abrió en otro lado o se acabó el tiempo", async () => {
     const { sync, server, blocked } = setup();
-    sync.setReady();
+    sync.setReady("pestana-1");
     server.failWith(new SyncHttpError(409, "otherDevice"));
     sync.queue("q1", { value: { text: "x" }, version: 1 }, 0);
     await vi.advanceTimersByTimeAsync(0);
@@ -126,7 +126,7 @@ describe("guardado automático", () => {
 
   it("descarta una respuesta con formato inválido en lugar de reintentarla para siempre", async () => {
     const { sync, server } = setup();
-    sync.setReady();
+    sync.setReady("pestana-1");
     server.failWith(new SyncHttpError(400));
     sync.queue("q1", { value: "basura", version: 1 }, 0);
     await vi.advanceTimersByTimeAsync(5000);
@@ -136,7 +136,7 @@ describe("guardado automático", () => {
 
   it("entregar espera a que termine el guardado en curso", async () => {
     const { sync, server } = setup();
-    sync.setReady();
+    sync.setReady("pestana-1");
     sync.queue("q1", { value: { text: "a" }, version: 1 }, 5000);
     sync.queue("q2", { value: { text: "b" }, version: 1 }, 5000);
     await sync.flush();

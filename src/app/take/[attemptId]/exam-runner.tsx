@@ -210,7 +210,6 @@ export function ExamRunner({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const clientId = useRef("");
   const offset = useRef(0);
   const deadline = useRef(new Date(deadlineAt).getTime());
   const warned = useRef({ five: false, one: false, ended: false });
@@ -219,8 +218,8 @@ export function ExamRunner({
     createAnswerSync({
       initialPending: boot.pending,
       transport: {
-        save: (examQuestionId, entry, keepalive) =>
-          post(`/api/attempts/${attemptId}/answers`, { clientId: clientId.current, examQuestionId, value: entry.value, version: entry.version }, keepalive),
+        save: (examQuestionId, entry, { keepalive, clientId }) =>
+          post(`/api/attempts/${attemptId}/answers`, { clientId, examQuestionId, value: entry.value, version: entry.version }, keepalive),
       },
       storage: {
         store: (pending) => {
@@ -259,7 +258,7 @@ export function ExamRunner({
       return;
     }
     try {
-      await post(`/api/attempts/${attemptId}/submit`, { clientId: clientId.current, auto });
+      await post(`/api/attempts/${attemptId}/submit`, { clientId: getClientId(), auto });
       try {
         localStorage.removeItem(storageKey(attemptId));
       } catch {
@@ -284,7 +283,7 @@ export function ExamRunner({
   async function takeOver() {
     try {
       const claimed = await post<{ status: string; deadlineAt: string; serverNow: string }>(`/api/attempts/${attemptId}/claim`, {
-        clientId: clientId.current,
+        clientId: getClientId(),
       });
       if (claimed.status !== "IN_PROGRESS") {
         setBlocker("timeUp");
@@ -299,10 +298,10 @@ export function ExamRunner({
 
   // Al abrir: esta pestaña reclama el intento; el servidor corrige el reloj y la hora límite.
   useEffect(() => {
-    clientId.current = getClientId();
+    const clientId = getClientId();
     offset.current = new Date(serverNow).getTime() - Date.now();
     let cancelled = false;
-    post<{ status: string; deadlineAt: string; serverNow: string }>(`/api/attempts/${attemptId}/claim`, { clientId: clientId.current })
+    post<{ status: string; deadlineAt: string; serverNow: string }>(`/api/attempts/${attemptId}/claim`, { clientId })
       .then((claimed) => {
         if (cancelled) return;
         if (claimed.status !== "IN_PROGRESS") {
@@ -311,7 +310,7 @@ export function ExamRunner({
         }
         offset.current = new Date(claimed.serverNow).getTime() - Date.now();
         deadline.current = new Date(claimed.deadlineAt).getTime();
-        sync.setReady();
+        sync.setReady(clientId);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -341,9 +340,13 @@ export function ExamRunner({
         void finish(true);
       }
     };
-    tick();
+    // Primera lectura fuera del cuerpo del efecto; luego, cada segundo.
+    const first = setTimeout(tick, 0);
     const timer = setInterval(tick, 1000);
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
     // finish y t son estables para este intento; el temporizador no debe reiniciarse.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

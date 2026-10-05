@@ -173,6 +173,22 @@ export async function publishResults(actor: CurrentUser, examId: string, now = n
   await recordAudit({ institutionId: actor.institutionId, actorId: actor.id, action: "RESULTS_PUBLISHED", entityType: "Exam", entityId: examId });
 }
 
+/**
+ * Cierra el examen antes de su hora (por ejemplo, cuando todos ya entregaron) para poder
+ * publicar notas. Solo si nadie está presentando: nunca le corta el tiempo a nadie.
+ */
+export async function closeExamNow(actor: CurrentUser, examId: string, now = new Date()) {
+  const exam = await findManageableExam(actor, examId);
+  if (exam.status !== "PUBLISHED") throw new ConflictError("Solo se puede cerrar un examen publicado.", "notPublished");
+  await finalizeExpiredAttempts({ examId }, now);
+  if (await prisma.examAttempt.count({ where: { examId, status: "IN_PROGRESS" } })) {
+    throw new ConflictError("Hay estudiantes presentando: espera a que entreguen.", "attemptsInProgress");
+  }
+  const endsAt = exam.endsAt && exam.endsAt < now ? exam.endsAt : now;
+  await prisma.exam.update({ where: { id: examId }, data: { status: "CLOSED", closedAt: now, endsAt } });
+  await recordAudit({ institutionId: actor.institutionId, actorId: actor.id, action: "EXAM_CLOSED", entityType: "Exam", entityId: examId });
+}
+
 // ---------- Estudiante ----------
 
 /**

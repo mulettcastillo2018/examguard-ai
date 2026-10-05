@@ -20,7 +20,7 @@ export class SyncHttpError extends Error {
 }
 
 export interface SyncTransport {
-  save(examQuestionId: string, entry: SavedAnswer, keepalive: boolean): Promise<{ version: number; stale: boolean }>;
+  save(examQuestionId: string, entry: SavedAnswer, options: { keepalive: boolean; clientId: string }): Promise<{ version: number; stale: boolean }>;
 }
 
 export interface SyncStorage {
@@ -46,6 +46,7 @@ export function createAnswerSync(options: AnswerSyncOptions) {
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let flushing: Promise<void> | null = null;
   let ready = false;
+  let clientId = "";
   let blocked = false;
 
   const persist = () => options.storage.store(Object.fromEntries(pending));
@@ -65,7 +66,7 @@ export function createAnswerSync(options: AnswerSyncOptions) {
     for (const [questionId, entry] of [...pending]) {
       let result: { version: number; stale: boolean };
       try {
-        result = await options.transport.save(questionId, entry, keepalive);
+        result = await options.transport.save(questionId, entry, { keepalive, clientId });
       } catch (error) {
         if (error instanceof SyncHttpError && error.status === 409) {
           blocked = true;
@@ -135,8 +136,9 @@ export function createAnswerSync(options: AnswerSyncOptions) {
     },
     flush,
     hasPending: () => pending.size > 0,
-    /** Ya hay identificador de pestaña aceptado por el servidor: se puede enviar. */
-    setReady() {
+    /** El servidor aceptó esta pestaña (su identificador): desde ahora se puede enviar. */
+    setReady(acceptedClientId: string) {
+      clientId = acceptedClientId;
       ready = true;
       void flush();
     },

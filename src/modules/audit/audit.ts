@@ -35,6 +35,7 @@ export const AUDIT_ACTIONS = [
   "ATTEMPT_DEVICE_CHANGED",
   "ANSWER_GRADED",
   "RESULTS_PUBLISHED",
+  "EXAM_CLOSED",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

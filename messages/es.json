@@ -253,7 +253,8 @@
       "ATTEMPT_AUTO_SUBMITTED": "Examen entregado al acabarse el tiempo",
       "ATTEMPT_DEVICE_CHANGED": "Continuó el examen en otra pestaña o dispositivo",
       "ANSWER_GRADED": "Calificó una respuesta",
-      "RESULTS_PUBLISHED": "Publicó los resultados de un examen"
+      "RESULTS_PUBLISHED": "Publicó los resultados de un examen",
+      "EXAM_CLOSED": "Cerró un examen"
     },
     "entities": {
       "Session": "Sesión",
@@ -583,7 +584,8 @@
         "note": "La nota admite hasta 300 caracteres.",
         "generic": "Revisa el ajuste."
       }
-    }
+    },
+    "resultsLink": "Resultados"
   },
   "studentExams": {
     "title": "Mis exámenes",
@@ -608,13 +610,13 @@
     "continue": "Continuar",
     "result": {
       "title": "Resultado",
-      "score": "{score} de {max} puntos",
+      "score": "{score, number} de {max, number} puntos",
       "best": "Cuenta tu mejor intento: el {number}.",
       "attempts": "Tus intentos",
-      "attemptLine": "Intento {number}: {score} de {max} puntos",
+      "attemptLine": "Intento {number}: {score, number} de {max, number} puntos",
       "yourAnswer": "Tu respuesta",
       "noAnswer": "Sin responder",
-      "points": "{awarded} de {points, plural, one {# punto} other {# puntos}}",
+      "points": "{awarded, number} de {points, plural, one {# punto} other {# puntos}}",
       "feedback": "Comentario de tu docente",
       "noKeyNotice": "Las respuestas correctas no se muestran para que tu docente pueda reutilizar sus preguntas. Si tienes dudas, pregúntale.",
       "notPublished": "Los resultados de este examen todavía no están publicados."
@@ -695,7 +697,7 @@
       "finish": "Entregar examen",
       "shortPlaceholder": "Escribe tu respuesta",
       "longPlaceholder": "Desarrolla tu respuesta",
-      "characters": "{count} de {max} caracteres",
+      "characters": "{count, number} de {max, number} caracteres",
       "trueLabel": "Verdadero",
       "falseLabel": "Falso",
       "chooseOne": "Elige una opción.",
@@ -736,5 +738,88 @@
     "description": "Los exámenes con resultados publicados.",
     "empty": "Todavía no hay resultados publicados.",
     "open": "Ver resultado"
+  },
+  "examResults": {
+    "title": "Resultados",
+    "open": "Resultados",
+    "back": "Volver al examen",
+    "publish": {
+      "heading": "Publicación de notas",
+      "ready": "Todo listo: ya puedes publicar las notas.",
+      "missing": "Para publicar falta:",
+      "problems": {
+        "windowOpen": "Que el examen cierre ({date}). Si ya entregaron todos, puedes cerrarlo ahora.",
+        "attemptsInProgress": "Que terminen quienes están presentando.",
+        "pendingGrading": "Calificar las respuestas pendientes."
+      },
+      "publish": "Publicar notas",
+      "confirmTitle": "¿Publicar las notas?",
+      "confirmDescription": "Cada estudiante verá su nota, los puntos de cada pregunta y tus comentarios. No verá las respuestas correctas.",
+      "confirm": "Publicar",
+      "cancel": "Cancelar",
+      "published": "Notas publicadas.",
+      "publishedOn": "Notas publicadas el {date}."
+    },
+    "close": {
+      "button": "Cerrar el examen ahora",
+      "title": "¿Cerrar el examen ahora?",
+      "description": "Nadie más podrá empezarlo. Solo se puede si nadie está presentando, para no cortarle el tiempo a nadie.",
+      "confirm": "Cerrar examen",
+      "cancel": "Cancelar",
+      "closed": "Examen cerrado."
+    },
+    "pending": {
+      "heading": "Por calificar",
+      "description": "Respuestas largas y cortas sin respuestas aceptadas. Los puntos van en múltiplos de 0,25.",
+      "empty": "No hay respuestas por calificar.",
+      "question": "Pregunta {number}",
+      "student": "{name} · intento {number}",
+      "answer": "Respuesta",
+      "noAnswer": "Sin responder",
+      "guide": "Tu guía de calificación",
+      "points": "Puntos (de {max})",
+      "feedback": "Comentario para el estudiante (opcional)",
+      "save": "Guardar calificación",
+      "saving": "Guardando…",
+      "saved": "Calificación guardada.",
+      "invalidPoints": "Los puntos van de 0 a {max}, en múltiplos de 0,25."
+    },
+    "students": {
+      "heading": "Estudiantes",
+      "name": "Estudiante",
+      "attempts": "Intentos",
+      "best": "Mejor nota",
+      "state": "Estado",
+      "notStarted": "No presentó",
+      "inProgress": "Presentando",
+      "pending": "Por calificar",
+      "graded": "Calificado",
+      "view": "Ver respuestas",
+      "score": "{score, number} de {max, number}"
+    },
+    "detail": {
+      "title": "Respuestas de {name}",
+      "attempt": "Intento {number}",
+      "status": {
+        "SUBMITTED": "Entregado",
+        "AUTO_SUBMITTED": "Entregado por tiempo",
+        "IN_PROGRESS": "Presentando"
+      },
+      "submittedAt": "Entregado el {date}",
+      "score": "{score, number} de {max, number} puntos",
+      "pendingScore": "Nota pendiente de calificación manual",
+      "consent": "Consentimiento (aviso {version}): cámara {camera}, micrófono {microphone}.",
+      "yes": "sí",
+      "no": "no",
+      "deviceSwitches": "{count, plural, =0 {No cambió de dispositivo.} one {Continuó en otra pestaña o dispositivo # vez.} other {Continuó en otra pestaña o dispositivo # veces.}}",
+      "deviceNote": "Es un dato para revisar con contexto, no una falta.",
+      "studentAnswer": "Respuesta del estudiante",
+      "correct": "Respuesta correcta",
+      "autoGraded": "Calificada automáticamente",
+      "manualGraded": "Calificada a mano",
+      "notGraded": "Sin calificar",
+      "adjust": "Ajustar puntos",
+      "feedback": "Comentario"
+    }
   }
 }

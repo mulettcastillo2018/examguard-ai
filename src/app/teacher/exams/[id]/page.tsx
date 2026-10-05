@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
+import { ChartColumn, Plus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +47,23 @@ export default async function ExamBuilderPage({ params }: PageProps<"/teacher/ex
       <Link href="/teacher/exams" className="mb-4 inline-block text-sm text-muted-foreground underline-offset-4 hover:underline">
         ← {t("back")}
       </Link>
-      <PageHeader title={exam.title} description={`${course.code} · ${course.name}`} actions={<ExamStatusBadge status={exam.status} />} />
+      <PageHeader
+        title={exam.title}
+        description={`${course.code} · ${course.name}`}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <ExamStatusBadge status={exam.status} />
+            {isDraft ? null : (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/teacher/exams/${exam.id}/results`}>
+                  <ChartColumn />
+                  {t("resultsLink")}
+                </Link>
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-6">
         <Card>

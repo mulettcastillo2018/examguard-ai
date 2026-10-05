@@ -19,6 +19,7 @@ import {
   updateExamSettings,
 } from "@/modules/exams/exams";
 import type { AccommodationInput, ExamSettingsInput } from "@/modules/exams/settings";
+import { closeExamNow, gradeAnswerManually, publishResults } from "@/modules/attempts/results";
 import type { QuestionInput } from "@/modules/question-bank/content";
 
 const manager = () => requireActor({ permission: "exams:manage" });
@@ -131,6 +132,37 @@ export async function setAccommodationAction(examId: string, studentId: string, 
   return runAction(async () => {
     await setAccommodation(await manager(), examId, studentId, input);
     refresh(examId);
+    return undefined;
+  });
+}
+
+// ---------- Resultados ----------
+
+function refreshResults(examId: string) {
+  refresh(examId);
+  revalidatePath(`/teacher/exams/${examId}/results`, "layout");
+}
+
+export async function gradeAnswerAction(examId: string, answerId: string, input: { points: number; feedback: string }): Promise<ActionResult> {
+  return runAction(async () => {
+    await gradeAnswerManually(await manager(), examId, answerId, input);
+    refreshResults(examId);
+    return undefined;
+  });
+}
+
+export async function closeExamAction(examId: string): Promise<ActionResult> {
+  return runAction(async () => {
+    await closeExamNow(await manager(), examId);
+    refreshResults(examId);
+    return undefined;
+  });
+}
+
+export async function publishResultsAction(examId: string): Promise<ActionResult> {
+  return runAction(async () => {
+    await publishResults(await manager(), examId);
+    refreshResults(examId);
     return undefined;
   });
 }

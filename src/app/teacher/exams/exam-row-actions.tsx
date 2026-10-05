@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Copy, FolderOpen, MoreHorizontal, Trash2 } from "lucide-react";
+import { ChartColumn, Copy, FolderOpen, MoreHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -61,6 +61,14 @@ export function ExamRowActions({ exam }: { exam: { id: string; title: string; is
               {t("open")}
             </Link>
           </DropdownMenuItem>
+          {exam.isDraft ? null : (
+            <DropdownMenuItem asChild>
+              <Link href={`/teacher/exams/${exam.id}/results`}>
+                <ChartColumn />
+                {t("resultsLink")}
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={duplicate}>
             <Copy />
             {t("duplicate")}

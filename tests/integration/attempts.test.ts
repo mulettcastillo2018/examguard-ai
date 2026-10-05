@@ -265,6 +265,32 @@ describe.skipIf(!hasDatabase)("examen del estudiante y resultados", () => {
     expect(JSON.stringify(result)).not.toContain("correctOptionIds");
   });
 
+  it("cerrar el examen antes de hora solo se puede si nadie está presentando", async () => {
+    const draft = await exams.duplicateExam(teacher, ids.exam as string);
+    await exams.updateExamSettings(teacher, draft.id, {
+      title: "Recuperación",
+      courseId: draft.courseId,
+      startsAt: at(200),
+      endsAt: at(400),
+      durationMinutes: 30,
+      maxAttempts: 1,
+      proctoring: {},
+    });
+    await exams.publishExam(teacher, draft.id, at(150));
+    const attemptId = await attempts.startAttempt(beto, draft.id, { clientId: "pc-beto", consent: { camera: false, microphone: false } }, at(210));
+
+    await expect(results.closeExamNow(teacher, draft.id, at(215))).rejects.toMatchObject({ status: 409, code: "attemptsInProgress" });
+    await attempts.submitAttempt(beto, attemptId, "pc-beto", at(216));
+    await results.closeExamNow(teacher, draft.id, at(217));
+    const closed = await db.exam.findUniqueOrThrow({ where: { id: draft.id } });
+    expect(closed).toMatchObject({ status: "CLOSED" });
+    expect(closed.endsAt?.toISOString()).toBe(at(217).toISOString());
+    // Cerrado: nadie más empieza y las notas ya se pueden publicar.
+    await expect(attempts.getExamLobby(ana, draft.id, at(218))).resolves.toMatchObject({ blocked: "closed" });
+    expect((await results.getExamResults(teacher, draft.id, at(218))).publishProblems).toEqual([]);
+    await expect(results.closeExamNow(teacher, draft.id, at(219))).rejects.toMatchObject({ code: "notPublished" });
+  });
+
   it("cada quien ve solo lo suyo", async () => {
     const examId = ids.exam as string;
     await expect(attempts.getExamLobby(outsider, examId, at(10))).rejects.toMatchObject({ status: 404 });
