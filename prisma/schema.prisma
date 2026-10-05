@@ -36,6 +36,22 @@ enum ExamStatus {
   ARCHIVED
 }
 
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  AUTO_SUBMITTED
+}
+
+enum GradingStatus {
+  PENDING_MANUAL
+  GRADED
+}
+
+enum ConsentGrantor {
+  STUDENT
+  GUARDIAN
+}
+
 model Institution {
   id        String     @id @default(cuid())
   name      String
@@ -89,6 +105,8 @@ model User {
   questions      Question[]      @relation("QuestionOwner")
   examsCreated   Exam[]          @relation("ExamCreator")
   accommodations Accommodation[]
+  attempts       ExamAttempt[]
+  answersGraded  Answer[]        @relation("AnswerGrader")
 
   @@index([institutionId, role])
 }
@@ -230,31 +248,34 @@ model Question {
 }
 
 model Exam {
-  id               String          @id @default(cuid())
-  institutionId    String
-  institution      Institution     @relation(fields: [institutionId], references: [id])
-  courseId         String
-  course           Course          @relation(fields: [courseId], references: [id])
-  createdById      String
-  createdBy        User            @relation("ExamCreator", fields: [createdById], references: [id])
-  title            String
-  description      String?
-  instructions     String?
-  status           ExamStatus      @default(DRAFT)
+  id                 String          @id @default(cuid())
+  institutionId      String
+  institution        Institution     @relation(fields: [institutionId], references: [id])
+  courseId           String
+  course             Course          @relation(fields: [courseId], references: [id])
+  createdById        String
+  createdBy          User            @relation("ExamCreator", fields: [createdById], references: [id])
+  title              String
+  description        String?
+  instructions       String?
+  status             ExamStatus      @default(DRAFT)
   // Ventana en la que se puede iniciar; obligatoria para publicar.
-  startsAt         DateTime?
-  endsAt           DateTime?
-  durationMinutes  Int             @default(60)
-  maxAttempts      Int             @default(1)
-  shuffleQuestions Boolean         @default(false)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  durationMinutes    Int             @default(60)
+  maxAttempts        Int             @default(1)
+  shuffleQuestions   Boolean         @default(false)
   // Supervisión: cámara, micrófono y pantalla completa (requerido / opcional / apagado).
-  proctoringConfig Json            @default("{}")
-  publishedAt      DateTime?
-  closedAt         DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  questions        ExamQuestion[]
-  accommodations   Accommodation[]
+  proctoringConfig   Json            @default("{}")
+  publishedAt        DateTime?
+  closedAt           DateTime?
+  // Las notas se ven solo cuando el docente las publica.
+  resultsPublishedAt DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  questions          ExamQuestion[]
+  accommodations     Accommodation[]
+  attempts           ExamAttempt[]
 
   @@index([courseId, status])
   @@index([institutionId, status])
@@ -271,6 +292,7 @@ model ExamQuestion {
   options          Json         @default("[]")
   answerKey        Json
   points           Float        @default(1)
+  answers          Answer[]
 
   @@index([examId, position])
 }
@@ -287,4 +309,66 @@ model Accommodation {
   updatedAt    DateTime @updatedAt
 
   @@id([examId, studentId])
+}
+
+// Intento de un estudiante. El servidor fija la hora límite al empezar; el navegador
+// solo la muestra. Un solo dispositivo activo: el último que abre el intento.
+model ExamAttempt {
+  id             String         @id @default(cuid())
+  examId         String
+  exam           Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  number         Int
+  status         AttemptStatus  @default(IN_PROGRESS)
+  startedAt      DateTime       @default(now())
+  deadlineAt     DateTime
+  submittedAt    DateTime?
+  activeClientId String?
+  // Veces que el intento pasó a otro dispositivo o pestaña (evidencia para la Fase 4).
+  clientSwitches Int            @default(0)
+  // Orden de las preguntas en este intento (aleatorio si el examen lo pide).
+  questionOrder  String[]
+  maxScore       Float
+  score          Float?
+  gradingStatus  GradingStatus?
+  answers        Answer[]
+  consent        ConsentRecord?
+
+  @@unique([examId, studentId, number])
+  @@index([examId, status])
+  @@index([studentId])
+}
+
+model Answer {
+  id             String       @id @default(cuid())
+  attemptId      String
+  attempt        ExamAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  examQuestionId String
+  examQuestion   ExamQuestion @relation(fields: [examQuestionId], references: [id], onDelete: Cascade)
+  value          Json
+  // Lo envía el navegador y solo puede crecer: un guardado viejo nunca pisa uno nuevo.
+  version        Int          @default(1)
+  savedAt        DateTime     @updatedAt
+  pointsAwarded  Float?
+  autoGraded     Boolean      @default(false)
+  gradedById     String?
+  gradedBy       User?        @relation("AnswerGrader", fields: [gradedById], references: [id], onDelete: SetNull)
+  gradedAt       DateTime?
+  feedback       String?
+
+  @@unique([attemptId, examQuestionId])
+}
+
+// Consentimiento informado de cada intento: versión del texto, qué se autorizó y quién.
+// grantedBy es null cuando no se autorizó cámara ni micrófono (negarse no tiene consecuencias).
+model ConsentRecord {
+  id          String          @id @default(cuid())
+  attemptId   String          @unique
+  attempt     ExamAttempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  textVersion String
+  camera      Boolean
+  microphone  Boolean
+  grantedBy   ConsentGrantor?
+  grantedAt   DateTime        @default(now())
 }

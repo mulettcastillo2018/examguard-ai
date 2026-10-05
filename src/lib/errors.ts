@@ -40,8 +40,9 @@ export class ValidationError extends AppError {
 }
 
 export class ConflictError extends AppError {
-  constructor(message = "El recurso ya existe o cambió mientras se editaba.") {
-    super(message, 409, "CONFLICT");
+  /** code: motivo preciso para que el cliente reaccione (por ejemplo "otherDevice"). */
+  constructor(message = "El recurso ya existe o cambió mientras se editaba.", code = "CONFLICT") {
+    super(message, 409, code);
   }
 }
 

@@ -247,7 +247,13 @@
       "EXAM_PUBLISHED": "Publicó un examen",
       "EXAM_UNPUBLISHED": "Volvió un examen a borrador",
       "EXAM_DELETED": "Eliminó un borrador de examen",
-      "ACCOMMODATION_UPDATED": "Cambió los ajustes de un estudiante en un examen"
+      "ACCOMMODATION_UPDATED": "Cambió los ajustes de un estudiante en un examen",
+      "ATTEMPT_STARTED": "Empezó un examen",
+      "ATTEMPT_SUBMITTED": "Entregó un examen",
+      "ATTEMPT_AUTO_SUBMITTED": "Examen entregado al acabarse el tiempo",
+      "ATTEMPT_DEVICE_CHANGED": "Continuó el examen en otra pestaña o dispositivo",
+      "ANSWER_GRADED": "Calificó una respuesta",
+      "RESULTS_PUBLISHED": "Publicó los resultados de un examen"
     },
     "entities": {
       "Session": "Sesión",
@@ -255,7 +261,8 @@
       "Course": "Curso",
       "Institution": "Institución",
       "Question": "Pregunta",
-      "Exam": "Examen"
+      "Exam": "Examen",
+      "ExamAttempt": "Intento de examen"
     }
   },
   "teacher": {

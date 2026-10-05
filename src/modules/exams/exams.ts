@@ -45,7 +45,7 @@ async function assertTeachesCourse(actor: CurrentUser, courseId: string) {
 }
 
 /** Examen de un curso que dicta el docente; si no, 404 (no revela que exista). */
-async function findManageableExam(actor: CurrentUser, examId: string) {
+export async function findManageableExam(actor: CurrentUser, examId: string) {
   assertCan(actor, "exams:manage");
   const exam = await prisma.exam.findFirst({
     where: { id: examId, institutionId: actor.institutionId, course: { teachers: { some: { teacherId: actor.id } } } },
@@ -395,6 +395,8 @@ export async function unpublishExam(actor: CurrentUser, examId: string, now = ne
   const exam = await findManageableExam(actor, examId);
   if (exam.status !== "PUBLISHED") throw new ConflictError("El examen no está publicado.");
   if (!exam.startsAt || now >= exam.startsAt) throw new ConflictError("El examen ya empezó: no puede volver a borrador.");
+  // Defensa adicional: con intentos no se puede (no debería haberlos antes de startsAt).
+  if (await prisma.examAttempt.count({ where: { examId } })) throw new ConflictError("El examen ya tiene intentos: no puede volver a borrador.");
   const draft = await prisma.exam.update({ where: { id: examId }, data: { status: "DRAFT", publishedAt: null } });
   await audit(actor, "EXAM_UNPUBLISHED", examId);
   return draft;
