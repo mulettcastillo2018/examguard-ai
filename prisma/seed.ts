@@ -298,9 +298,29 @@ async function main() {
       questions: { create: copies(mathBank.filter((question) => question.category === "Álgebra")) },
     },
   });
+  // Abierto desde ya y por un mes: para probar la pantalla del examen sin esperar.
+  const now = Date.now();
+  await prisma.exam.create({
+    data: {
+      institutionId: institution.id,
+      courseId: mathCourse,
+      createdById: mathTeacher,
+      title: "Taller de repaso",
+      description: "Práctica abierta antes del parcial.",
+      instructions: "Tienes 20 minutos y dos intentos. Cuenta tu mejor nota.",
+      status: "PUBLISHED",
+      startsAt: new Date(now - 60 * 60 * 1000),
+      endsAt: new Date(now + 30 * 24 * 60 * 60 * 1000),
+      durationMinutes: 20,
+      maxAttempts: 2,
+      proctoringConfig: { camera: "requested", microphone: "off", fullscreen: "requested" },
+      publishedAt: new Date(now),
+      questions: { create: copies(mathBank) },
+    },
+  });
 
   console.log(
-    `Demo lista: ${institution.name} · 1 rectora, ${TEACHERS.length} docentes, ${STUDENTS.length} estudiantes, ${COURSES.length} cursos, ${questionCount} preguntas, 2 exámenes.\n` +
+    `Demo lista: ${institution.name} · 1 rectora, ${TEACHERS.length} docentes, ${STUDENTS.length} estudiantes, ${COURSES.length} cursos, ${questionCount} preguntas, 3 exámenes.\n` +
       `Cuentas: rectoria@${EMAIL_DOMAIN}, ${TEACHERS.map((t) => `${t.email}@${EMAIL_DOMAIN}`).join(", ")}, ` +
       `${STUDENTS[0].email}@${EMAIL_DOMAIN} (y demás estudiantes). Contraseña: la de SEED_PASSWORD.`,
   );

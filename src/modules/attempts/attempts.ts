@@ -9,7 +9,7 @@ import { readProctoringConfig } from "@/modules/exams/settings";
 import { assertCan } from "@/modules/rbac";
 import { parseAnswerValue } from "./answers";
 import { gradeAnswer, summarizeGrades } from "./grading";
-import { computeDeadline, CONSENT_TEXT_VERSION, isPastDeadline, isWindowOpen } from "./timing";
+import { computeDeadline, isPastDeadline, isWindowOpen } from "./timing";
 
 // El examen visto por el estudiante. Reglas de integridad (docs/ANALISIS.md, sección 9):
 // el servidor fija la hora límite; un intento activo por estudiante y examen; un solo
@@ -147,11 +147,12 @@ export async function listStudentExams(actor: CurrentUser, now = new Date()) {
 export async function getExamLobby(actor: CurrentUser, examId: string, now = new Date()) {
   const exam = await findTakeableExam(actor, examId);
   await finalizeExpiredAttempts({ examId, studentId: actor.id }, now);
-  const [attempts, accommodation, questions, course] = await Promise.all([
+  const [attempts, accommodation, questions, course, policy] = await Promise.all([
     prisma.examAttempt.findMany({ where: { examId, studentId: actor.id }, orderBy: { number: "asc" } }),
     prisma.accommodation.findUnique({ where: { examId_studentId: { examId, studentId: actor.id } } }),
     prisma.examQuestion.findMany({ where: { examId }, select: { points: true } }),
     prisma.course.findUniqueOrThrow({ where: { id: exam.courseId }, select: { code: true, name: true } }),
+    prisma.policy.findUnique({ where: { institutionId: exam.institutionId } }),
   ]);
   const inProgress = attempts.find((attempt) => attempt.status === "IN_PROGRESS") ?? null;
   const proctoring = readProctoringConfig(exam.proctoringConfig);
@@ -190,6 +191,8 @@ export async function getExamLobby(actor: CurrentUser, examId: string, now = new
     },
     cameraExempt: Boolean(accommodation?.cameraExempt),
     isMinor: actor.isMinor,
+    // El aviso de consentimiento: su versión y cuánto se conservan los eventos.
+    consent: { textVersion: policy?.consentTextVersion ?? "2026-10-01", retentionDays: policy?.evidenceRetentionDays ?? 30 },
   };
 }
 
@@ -242,7 +245,7 @@ export async function startAttempt(actor: CurrentUser, examId: string, input: St
         questionOrder: exam.shuffleQuestions ? shuffled(ids) : ids,
         maxScore: questions.reduce((sum, question) => sum + question.points, 0),
         consent: {
-          create: { textVersion: CONSENT_TEXT_VERSION, camera, microphone, grantedBy: camera || microphone ? "STUDENT" : null, grantedAt: now },
+          create: { textVersion: lobby.consent.textVersion, camera, microphone, grantedBy: camera || microphone ? "STUDENT" : null, grantedAt: now },
         },
       },
     });
@@ -389,8 +392,12 @@ export async function saveAnswer(actor: CurrentUser, attemptId: string, input: S
   return { version: input.version, stale: false };
 }
 
-export async function submitAttempt(actor: CurrentUser, attemptId: string, clientId: string, now = new Date()) {
+/**
+ * Entrega el intento. `auto`: la pantalla lo pide cuando su cuenta atrás llega a cero; el
+ * servidor solo lo acepta como entrega por tiempo si de verdad pasó la hora límite.
+ */
+export async function submitAttempt(actor: CurrentUser, attemptId: string, clientId: string, now = new Date(), options: { auto?: boolean } = {}) {
   const attempt = await findWritableAttempt(actor, attemptId, clientId, now);
-  await finalizeAttempt(attempt, now, false, actor.id);
+  await finalizeAttempt(attempt, now, Boolean(options.auto) && now >= attempt.deadlineAt, actor.id);
   return prisma.examAttempt.findUniqueOrThrow({ where: { id: attemptId }, select: { id: true, status: true, submittedAt: true } });
 }

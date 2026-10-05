@@ -282,7 +282,8 @@
       "myCourses": "Mis cursos",
       "privacyTitle": "Tu privacidad",
       "privacyText": "Antes de cada examen supervisado verás qué información se registra, para qué, cuánto tiempo se conserva y quién puede verla. Si no autorizas la cámara, igual puedes presentar el examen.",
-      "guardianNotice": "Como eres menor de edad, la autorización de supervisión la da tu acudiente."
+      "guardianNotice": "Como eres menor de edad, la autorización de supervisión la da tu acudiente.",
+      "noUpcoming": "No tienes exámenes próximos."
     }
   },
   "ui": {
@@ -583,5 +584,157 @@
         "generic": "Revisa el ajuste."
       }
     }
+  },
+  "studentExams": {
+    "title": "Mis exámenes",
+    "description": "Los exámenes de tus cursos. El tiempo lo controla el servidor y tus respuestas se guardan solas mientras respondes.",
+    "empty": "Todavía no tienes exámenes publicados.",
+    "groups": {
+      "now": "Para presentar",
+      "upcoming": "Próximos",
+      "past": "Presentados y cerrados"
+    },
+    "state": {
+      "upcoming": "Próximo",
+      "open": "Disponible",
+      "inProgress": "En curso",
+      "finished": "Entregado",
+      "missed": "No presentado"
+    },
+    "noWindow": "Sin fecha",
+    "duration": "{minutes} minutos",
+    "attempts": "{used} de {max, plural, one {# intento} other {# intentos}}",
+    "go": "Ir al examen",
+    "continue": "Continuar",
+    "result": {
+      "title": "Resultado",
+      "score": "{score} de {max} puntos",
+      "best": "Cuenta tu mejor intento: el {number}.",
+      "attempts": "Tus intentos",
+      "attemptLine": "Intento {number}: {score} de {max} puntos",
+      "yourAnswer": "Tu respuesta",
+      "noAnswer": "Sin responder",
+      "points": "{awarded} de {points, plural, one {# punto} other {# puntos}}",
+      "feedback": "Comentario de tu docente",
+      "noKeyNotice": "Las respuestas correctas no se muestran para que tu docente pueda reutilizar sus preguntas. Si tienes dudas, pregúntale.",
+      "notPublished": "Los resultados de este examen todavía no están publicados."
+    },
+    "resultsPending": "Resultados pendientes",
+    "lobby": {
+      "back": "Volver a mis exámenes",
+      "window": "Disponible",
+      "duration": "Duración",
+      "extra": "Incluye {minutes} minutos extra por un ajuste de tu docente.",
+      "questions": "Preguntas",
+      "attempts": "Intentos usados",
+      "instructions": "Instrucciones",
+      "noInstructions": "Tu docente no dejó instrucciones adicionales.",
+      "blocked": {
+        "upcoming": "Este examen abre el {date}.",
+        "closed": "Este examen ya cerró.",
+        "noAttemptsLeft": "Ya usaste todos tus intentos."
+      },
+      "submitted": "Entregaste este examen.",
+      "resultsPending": "Tu docente publicará los resultados cuando termine de calificar.",
+      "resultsReady": "Ya puedes ver tu resultado.",
+      "start": "Empezar examen",
+      "continue": "Continuar examen",
+      "starting": "Preparando…",
+      "timerNotice": "Al empezar corre tu tiempo, aunque cierres la página o pierdas la conexión."
+    },
+    "check": {
+      "heading": "Prueba de compatibilidad",
+      "description": "Revisamos tu equipo antes de empezar. Si algo sale con advertencia, puedes presentar igual.",
+      "again": "Volver a probar",
+      "running": "Probando…",
+      "ok": "Listo",
+      "warn": "Advertencia",
+      "fail": "No funciona",
+      "browser": "Navegador",
+      "browserOk": "Tu navegador tiene todo lo necesario.",
+      "browserFail": "Tu navegador no guarda datos locales: si pierdes la conexión podrías perder respuestas. Usa otro navegador o sal del modo privado.",
+      "connection": "Conexión con el servidor",
+      "connectionOk": "Respuesta en {ms} ms.",
+      "connectionSlow": "La conexión está lenta ({ms} ms). Tus respuestas se guardan igual, solo que tardan más.",
+      "connectionFail": "No hay conexión con el servidor. Revisa tu internet antes de empezar.",
+      "clock": "El reloj de tu equipo está desfasado {minutes} minutos. No importa: el tiempo lo cuenta el servidor.",
+      "device": "Equipo",
+      "deviceOk": "Computador.",
+      "deviceWarn": "Parece un celular o tableta. Te recomendamos un computador: la pantalla completa y los atajos funcionan distinto.",
+      "fullscreen": "Pantalla completa",
+      "fullscreenOk": "Disponible.",
+      "fullscreenWarn": "Tu navegador no permite pantalla completa. Puedes presentar igual."
+    },
+    "consent": {
+      "heading": "Cómo funciona la supervisión",
+      "intro": "Este examen tiene supervisión para que tu docente pueda revisar las sesiones. Ninguna señal decide nada por sí sola: si algo llama la atención, una persona revisa y decide.",
+      "activity": "Se registra la actividad en el navegador: cambios de pestaña o ventana, salidas de pantalla completa, texto pegado y pérdidas de conexión, cada uno con su hora.",
+      "camera": "Cámara: si la autorizas, tu equipo cuenta cuántos rostros aparecen. La imagen no se graba ni se envía; solo el conteo.",
+      "microphone": "Micrófono: si lo autorizas, tu equipo mide el nivel de sonido. No se graba ni se envía audio.",
+      "retention": "Estos registros se conservan {days, plural, one {# día} other {# días}} y luego se borran.",
+      "access": "Los ven tu docente y la administración de tu institución. Tú también puedes consultarlos.",
+      "refuse": "Si no autorizas la cámara o el micrófono, presentas igual y eso no genera ninguna alerta.",
+      "minor": "Como eres menor de edad, la cámara y el micrófono solo se usan con la autorización de tu acudiente, registrada por tu institución. Como aún no está registrada, presentarás sin ellos, y eso no genera ninguna alerta.",
+      "cameraExempt": "Tienes un ajuste que te exime de la cámara: no se usará en este examen.",
+      "allowCamera": "Autorizo el uso de la cámara durante este examen",
+      "allowMicrophone": "Autorizo el uso del micrófono durante este examen",
+      "acknowledge": "Leí este aviso",
+      "version": "Aviso versión {version}"
+    },
+    "attempt": {
+      "timeLeft": "Tiempo restante",
+      "warning5": "Quedan 5 minutos.",
+      "warning1": "Queda 1 minuto.",
+      "progress": "{answered} de {total} respondidas",
+      "question": "Pregunta {number} de {total}",
+      "navigation": "Preguntas del examen",
+      "goTo": "Ir a la pregunta {number}",
+      "answered": "respondida",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "finish": "Entregar examen",
+      "shortPlaceholder": "Escribe tu respuesta",
+      "longPlaceholder": "Desarrolla tu respuesta",
+      "characters": "{count} de {max} caracteres",
+      "trueLabel": "Verdadero",
+      "falseLabel": "Falso",
+      "chooseOne": "Elige una opción.",
+      "chooseMany": "Elige todas las que correspondan.",
+      "save": {
+        "saved": "Todo guardado",
+        "saving": "Guardando…",
+        "pending": "Cambios por guardar",
+        "offline": "Sin conexión: tus respuestas quedan en este equipo y se enviarán al reconectar.",
+        "retrying": "No se pudo guardar. Reintentando…"
+      },
+      "confirm": {
+        "title": "¿Entregar el examen?",
+        "allAnswered": "Respondiste todas las preguntas.",
+        "unanswered": "{count, plural, one {Te falta # pregunta} other {Te faltan # preguntas}}: las que dejes sin responder valen 0.",
+        "description": "Después de entregar no podrás cambiar tus respuestas.",
+        "pendingSaves": "Hay respuestas sin guardar: se enviarán antes de entregar.",
+        "confirm": "Entregar",
+        "cancel": "Seguir respondiendo"
+      },
+      "submitting": "Entregando…",
+      "submitted": "Examen entregado.",
+      "submitFailed": "No se pudo entregar: revisa tu conexión e inténtalo de nuevo. Tus respuestas siguen guardadas.",
+      "otherDevice": {
+        "title": "El examen se abrió en otra pestaña o dispositivo",
+        "description": "Solo uno puede estar activo a la vez. Si continúas aquí, el otro dejará de guardar.",
+        "takeOver": "Continuar aquí"
+      },
+      "timeUp": {
+        "title": "Se acabó el tiempo",
+        "description": "Tu examen se entregó con las respuestas que alcanzaste a guardar.",
+        "back": "Volver a mis exámenes"
+      }
+    }
+  },
+  "studentResults": {
+    "title": "Resultados",
+    "description": "Los exámenes con resultados publicados.",
+    "empty": "Todavía no hay resultados publicados.",
+    "open": "Ver resultado"
   }
 }

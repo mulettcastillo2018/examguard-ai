@@ -16,6 +16,3 @@ export const isPastDeadline = (deadlineAt: Date, now: Date) => now.getTime() > d
 export function isWindowOpen(exam: { startsAt: Date | null; endsAt: Date | null }, now: Date): boolean {
   return Boolean(exam.startsAt && exam.endsAt && now >= exam.startsAt && now < exam.endsAt);
 }
-
-/** Versión del texto de consentimiento que acepta el estudiante (se guarda en cada intento). */
-export const CONSENT_TEXT_VERSION = "2026-10-05";
