@@ -7,6 +7,21 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EVENT_CATALOG, SIMULATED_EVENTS, type ClientEvent } from "@/modules/proctoring/catalog";
 
+type Simulated = (typeof SIMULATED_EVENTS)[number];
+
+/** El evento "ocurrió" durante los últimos segundos que dice su duración (fuera del render). */
+function simulatedEvent(simulated: Simulated): ClientEvent {
+  return {
+    clientEventId: crypto.randomUUID(),
+    type: simulated.type,
+    occurredAt: new Date(Date.now() - (simulated.durationSec ?? 0) * 1000).toISOString(),
+    durationSec: simulated.durationSec,
+    confidence: simulated.confidence,
+    metadata: {},
+    simulated: true,
+  };
+}
+
 /**
  * Simulador de la demostración (sección 22 de la especificación): genera eventos
  * marcados como simulados. Los de cámara o micrófono solo si la sesión los autorizó.
@@ -15,19 +30,9 @@ export function SimulatorPanel({ camera, microphone, onEmit }: { camera: boolean
   const t = useTranslations("proctoring");
   const [open, setOpen] = useState(false);
 
-  function emit(type: (typeof SIMULATED_EVENTS)[number]) {
-    // El evento "ocurrió" durante los últimos segundos que dice su duración.
-    const startedAt = Date.now() - (type.durationSec ?? 0) * 1000;
-    onEmit({
-      clientEventId: crypto.randomUUID(),
-      type: type.type,
-      occurredAt: new Date(startedAt).toISOString(),
-      durationSec: type.durationSec,
-      confidence: type.confidence,
-      metadata: {},
-      simulated: true,
-    });
-    toast.message(t("simulator.sent", { type: t(`types.${type.type}`) }));
+  function emit(simulated: Simulated) {
+    onEmit(simulatedEvent(simulated));
+    toast.message(t("simulator.sent", { type: t(`types.${simulated.type}`) }));
   }
 
   if (!open) {
