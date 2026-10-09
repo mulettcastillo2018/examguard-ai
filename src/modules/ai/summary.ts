@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
 import { NotFoundError } from "@/lib/errors";
 import type { CurrentUser } from "@/modules/auth/session";
+import { labelSignals } from "@/modules/agents/labels";
 import { findManageableExam } from "@/modules/exams/exams";
 import { createAnthropicProvider, describeAnthropicError } from "./anthropic";
 import { buildSummaryPrompt, SUMMARY_SYSTEM, templateSummary, validateSummary, type SummarySignal } from "./guardrails";
@@ -16,14 +17,9 @@ export function getAIProvider(): AIProvider | null {
   return env.ANTHROPIC_API_KEY ? createAnthropicProvider({ apiKey: env.ANTHROPIC_API_KEY, model: env.ANTHROPIC_MODEL }) : null;
 }
 
-const SEVERITY_ORDER = { HIGH: 0, MEDIUM: 1, LOW: 2 } as const;
-
-/** Señales en orden estable (severidad y hora): S1, S2... coinciden entre el texto y la pantalla. */
+/** Señales en orden estable: S1, S2... coinciden entre el texto y la pantalla. */
 export async function labeledSignals(sessionId: string) {
-  const signals = await prisma.riskSignal.findMany({ where: { sessionId } });
-  return signals
-    .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] || a.windowStart.getTime() - b.windowStart.getTime() || a.ruleId.localeCompare(b.ruleId))
-    .map((signal, index) => ({ ...signal, label: `S${index + 1}` }));
+  return labelSignals(await prisma.riskSignal.findMany({ where: { sessionId } }));
 }
 
 export async function generateSessionSummary(sessionId: string, options: { provider?: AIProvider | null; now?: Date } = {}) {
@@ -85,12 +81,12 @@ export async function generateSessionSummary(sessionId: string, options: { provi
   return { text, source, signals };
 }
 
-/** Para el docente: el resumen guardado, o uno nuevo si no hay (o quedó viejo). */
-export async function getAttemptSummary(actor: CurrentUser, examId: string, attemptId: string) {
+/** Para el docente: el resumen guardado, o uno nuevo si no hay (o si pide rehacerlo). */
+export async function getAttemptSummary(actor: CurrentUser, examId: string, attemptId: string, { regenerate = false } = {}) {
   await findManageableExam(actor, examId);
   const session = await prisma.proctoringSession.findFirst({ where: { attemptId, attempt: { examId } } });
   if (!session) throw new NotFoundError("El intento no tiene sesión de supervisión.");
-  if (session.riskSummary) {
+  if (session.riskSummary && !regenerate) {
     return { text: session.riskSummary, source: session.riskSummaryProvider ?? "template", signals: await labeledSignals(session.id) };
   }
   return generateSessionSummary(session.id);

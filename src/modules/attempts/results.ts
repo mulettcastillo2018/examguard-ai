@@ -45,6 +45,7 @@ export async function getExamResults(actor: CurrentUser, examId: string, now = n
         maxScore: true,
         gradingStatus: true,
         clientSwitches: true,
+        proctoring: { select: { reviewStatus: true } },
       },
     }),
     // Cola manual: respuestas de intentos entregados que aún no tienen puntos.
@@ -69,6 +70,7 @@ export async function getExamResults(actor: CurrentUser, examId: string, now = n
       best: bestScore(own.map((attempt) => attempt.score)),
       inProgress: own.some((attempt) => attempt.status === "IN_PROGRESS"),
       pendingManual: own.some((attempt) => attempt.gradingStatus === "PENDING_MANUAL"),
+      reviewRecommended: own.some((attempt) => attempt.proctoring?.reviewStatus === "RECOMMENDED"),
     };
   });
 
@@ -97,7 +99,7 @@ export async function getAttemptDetail(actor: CurrentUser, examId: string, attem
   await findManageableExam(actor, examId);
   const attempt = await prisma.examAttempt.findFirst({
     where: { id: attemptId, examId },
-    include: { student: { select: { name: true } }, consent: true },
+    include: { student: { select: { name: true } }, consent: true, proctoring: { include: { signals: true } } },
   });
   if (!attempt) throw new NotFoundError("El intento no es de este examen.");
   const answers = await prisma.answer.findMany({

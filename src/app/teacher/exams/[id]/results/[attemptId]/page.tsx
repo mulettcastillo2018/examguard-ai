@@ -4,13 +4,16 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { SignalList } from "@/components/proctoring/signal-list";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotFoundError } from "@/lib/errors";
+import { labelSignals } from "@/modules/agents/labels";
 import { describeAnswer, describeKey } from "@/modules/attempts/describe";
 import { getAttemptDetail } from "@/modules/attempts/results";
 import { requirePageUser } from "@/modules/auth/session";
 import { formatPoints } from "@/modules/question-bank/content";
 import { GradeForm } from "../grade-form";
+import { SummaryPanel } from "./summary-panel";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("examResults");
@@ -23,6 +26,7 @@ export default async function AttemptDetailPage({ params }: PageProps<"/teacher/
   const t = await getTranslations("examResults");
   const tAttempt = await getTranslations("studentExams.attempt");
   const tTypes = await getTranslations("questionBank.types");
+  const tReview = await getTranslations("review");
   const format = await getFormatter();
   const { attempt, answers } = await getAttemptDetail(user, id, attemptId).catch((error: unknown) => {
     if (error instanceof NotFoundError) notFound();
@@ -30,6 +34,8 @@ export default async function AttemptDetailPage({ params }: PageProps<"/teacher/
   });
   const labels = { trueLabel: tAttempt("trueLabel"), falseLabel: tAttempt("falseLabel") };
   const editable = attempt.status !== "IN_PROGRESS";
+  const session = attempt.proctoring;
+  const signals = session ? labelSignals(session.signals).map(({ id, label, severity, explanation }) => ({ id, label, severity, explanation })) : [];
 
   return (
     <>
@@ -62,6 +68,34 @@ export default async function AttemptDetailPage({ params }: PageProps<"/teacher/
               {t("detail.deviceSwitches", { count: attempt.clientSwitches })}
               {attempt.clientSwitches ? ` ${t("detail.deviceNote")}` : ""}
             </p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="supervision-card">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle>{tReview("heading")}</CardTitle>
+            {session ? (
+              <Badge variant={session.reviewStatus === "RECOMMENDED" ? "destructive" : "outline"}>{tReview(`status.${session.reviewStatus}`)}</Badge>
+            ) : null}
+          </CardHeader>
+          <CardContent className="grid gap-4 text-sm">
+            {!session ? (
+              <p className="text-muted-foreground">{tReview("noSession")}</p>
+            ) : signals.length === 0 ? (
+              <p className="text-muted-foreground">{tReview("noSignals")}</p>
+            ) : (
+              <>
+                <div className="grid gap-2">
+                  <p className="font-medium">{tReview("signals")}</p>
+                  <SignalList signals={signals} />
+                </div>
+                <SummaryPanel
+                  examId={id}
+                  attemptId={attempt.id}
+                  initial={session.riskSummary ? { text: session.riskSummary, source: session.riskSummaryProvider ?? "template" } : null}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
 

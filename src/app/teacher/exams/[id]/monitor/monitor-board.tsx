@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { EventItem, type EventView } from "@/components/proctoring/event-item";
+import { SignalList } from "@/components/proctoring/signal-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -26,6 +27,7 @@ export function MonitorBoard({ examId, initial }: { examId: string; initial: Mon
   const t = useTranslations("monitor");
   const tProctoring = useTranslations("proctoring");
   const tCommon = useTranslations("common");
+  const tReview = useTranslations("review");
   const format = useFormatter();
   const [data, setData] = useState(initial);
   const [receivedAt, setReceivedAt] = useState(() => new Date(initial.serverNow).getTime());
@@ -74,9 +76,14 @@ export function MonitorBoard({ examId, initial }: { examId: string; initial: Mon
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <p className="font-medium" data-testid="monitor-summary">
-          {t("summary", data.summary)}
-        </p>
+        <div className="grid gap-0.5">
+          <p className="font-medium" data-testid="monitor-summary">
+            {t("summary", data.summary)}
+          </p>
+          <p className={cn("text-xs", data.summary.recommended ? "font-medium text-destructive" : "text-muted-foreground")} data-testid="monitor-recommended">
+            {tReview("recommendedCount", { count: data.summary.recommended })}
+          </p>
+        </div>
         <p className={cn("flex items-center gap-2 text-muted-foreground", state === "failed" && "text-amber-700")} aria-live="polite">
           <span className={cn("size-2 rounded-full", state === "live" ? "animate-pulse bg-emerald-500" : "bg-muted-foreground/50")} aria-hidden />
           {status}
@@ -131,6 +138,9 @@ export function MonitorBoard({ examId, initial }: { examId: string; initial: Mon
                       <div className="grid gap-1 text-sm">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant={attempt.status === "IN_PROGRESS" ? "default" : "secondary"}>{t(`status.${attempt.status}`)}</Badge>
+                          {session && session.reviewStatus !== "NOT_REQUIRED" ? (
+                            <Badge variant={session.reviewStatus === "RECOMMENDED" ? "destructive" : "outline"}>{tReview(`status.${session.reviewStatus}`)}</Badge>
+                          ) : null}
                           {attempt.status === "IN_PROGRESS" ? (
                             <span className="flex items-center gap-1.5 text-xs">
                               <span className={cn("size-2 rounded-full", session?.online ? "bg-emerald-500" : "bg-muted-foreground/50")} aria-hidden />
@@ -174,6 +184,12 @@ export function MonitorBoard({ examId, initial }: { examId: string; initial: Mon
                           {t("microphone", { state: session.microphoneEnabled ? t("microphoneAuthorized") : t("microphoneNotAuthorized") })} ·{" "}
                           {t("events", { count: session.eventCount })}
                         </p>
+                        {session.signals.length ? (
+                          <div className="grid gap-2 rounded-md border p-3">
+                            <p className="font-medium">{tReview("signals")}</p>
+                            <SignalList signals={session.signals} />
+                          </div>
+                        ) : null}
                         <ul className="grid gap-2" data-testid="monitor-events">
                           {session.lastEvents.map((event) => (
                             <EventItem key={event.id} event={event as EventView} />

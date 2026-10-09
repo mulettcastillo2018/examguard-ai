@@ -25,6 +25,7 @@ export default async function ExamResultsPage({ params }: PageProps<"/teacher/ex
   const t = await getTranslations("examResults");
   const tAttempt = await getTranslations("studentExams.attempt");
   const tCommon = await getTranslations("common");
+  const tReview = await getTranslations("review");
   const format = await getFormatter();
   const results = await getExamResults(user, id).catch((error: unknown) => {
     if (error instanceof NotFoundError) notFound();
@@ -130,7 +131,10 @@ export default async function ExamResultsPage({ params }: PageProps<"/teacher/ex
                         ) : null}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={state === "graded" ? "default" : state === "notStarted" ? "outline" : "secondary"}>{t(`students.${state}`)}</Badge>
+                        <div className="flex flex-wrap gap-1.5">
+                          <Badge variant={state === "graded" ? "default" : state === "notStarted" ? "outline" : "secondary"}>{t(`students.${state}`)}</Badge>
+                          {row.reviewRecommended ? <Badge variant="destructive">{tReview("status.RECOMMENDED")}</Badge> : null}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {row.best === null ? "—" : t("students.score", { score: row.best, max: results.maxScore })}

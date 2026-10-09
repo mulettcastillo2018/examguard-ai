@@ -19,6 +19,7 @@ import {
   updateExamSettings,
 } from "@/modules/exams/exams";
 import type { AccommodationInput, ExamSettingsInput } from "@/modules/exams/settings";
+import { getAttemptSummary } from "@/modules/ai/summary";
 import { closeExamNow, gradeAnswerManually, publishResults } from "@/modules/attempts/results";
 import type { QuestionInput } from "@/modules/question-bank/content";
 
@@ -164,5 +165,13 @@ export async function publishResultsAction(examId: string): Promise<ActionResult
     await publishResults(await manager(), examId);
     refreshResults(examId);
     return undefined;
+  });
+}
+
+/** Resumen para quien revisa: el guardado o uno nuevo (Claude o la plantilla). */
+export async function generateSummaryAction(examId: string, attemptId: string, regenerate: boolean): Promise<ActionResult<{ text: string; source: string }>> {
+  return runAction(async () => {
+    const summary = await getAttemptSummary(await manager(), examId, attemptId, { regenerate });
+    return { text: summary.text, source: summary.source };
   });
 }

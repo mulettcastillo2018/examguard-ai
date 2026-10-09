@@ -173,11 +173,14 @@ describe.skipIf(!hasDatabase)("supervisión: sesiones y eventos", () => {
     // Beto (en curso) mandó señal de vida hace 10 s; Ana ya entregó.
     await proctoring.ingestEvents(beto, ids.beto as string, { clientId: "tablet-beto", sentAt: at(55).toISOString(), events: [] }, at(55));
     const monitor = await getExamMonitor(teacher, ids.demo as string, new Date(at(55).getTime() + 10_000));
-    expect(monitor.summary).toEqual({ inProgress: 1, submitted: 1, notStarted: 0 });
+    expect(monitor.summary).toEqual({ recommended: 1, inProgress: 1, submitted: 1, notStarted: 0 });
     const anaRow = monitor.rows.find((row) => row.student.id === ana.id)!;
     expect(anaRow.attempt?.status).toBe("SUBMITTED");
     expect(anaRow.attempt?.session?.counts).toMatchObject({ FOCUS: 2, ACTIVITY: 1, VISION: 1, EXAM: 2 });
     expect(anaRow.attempt?.session?.online).toBe(false);
+    // Fase 5: la señal alta (varios rostros, simulada) recomienda revisar, con su etiqueta.
+    expect(anaRow.attempt?.session?.reviewStatus).toBe("RECOMMENDED");
+    expect(anaRow.attempt?.session?.signals.map((signal) => [signal.label, signal.ruleId])[0]).toEqual(["S1", "multiple-faces"]);
     const betoRow = monitor.rows.find((row) => row.student.id === beto.id)!;
     expect(betoRow.attempt?.session).toMatchObject({ online: true, cameraEnabled: false });
     expect(betoRow.attempt?.session?.lastEvents[0]?.type).toBe("DEVICE_SWITCHED");

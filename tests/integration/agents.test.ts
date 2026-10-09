@@ -135,6 +135,23 @@ describe.skipIf(!hasDatabase)("agentes y motor de reglas", () => {
     expect(current.riskSummary).toBeNull();
   });
 
+  it("un análisis más viejo que el guardado se descarta, y uno sin cambios conserva el resumen", async () => {
+    const { analyzeSession } = await import("@/modules/agents/orchestrator");
+    const before = await session("ana");
+    // Lotes que se cruzan: el análisis del lote anterior termina después que el del siguiente.
+    expect((await analyzeSession(before.id, at(1)))?.applied).toBe(false);
+    let current = await session("ana");
+    expect(current.analyzedAt).toEqual(before.analyzedAt);
+    expect(current.agentRuns).toHaveLength(before.agentRuns.length);
+
+    await db.proctoringSession.update({ where: { id: before.id }, data: { riskSummary: "Resumen vigente", riskSummaryProvider: "mock" } });
+    expect((await analyzeSession(before.id, at(26)))?.applied).toBe(true);
+    current = await session("ana");
+    expect(current.riskSummary).toBe("Resumen vigente");
+    const updatedAt = (signals: { ruleId: string; updatedAt: Date }[]) => Object.fromEntries(signals.map((signal) => [signal.ruleId, signal.updatedAt.getTime()]));
+    expect(updatedAt(current.signals)).toEqual(updatedAt(before.signals));
+  });
+
   it("una señal alta (varios rostros) basta, y el umbral de la institución se aplica", async () => {
     await send("beto", [{ type: "MULTIPLE_FACES", minute: 30, confidence: 0.93, durationSec: 6, simulated: true }], 31);
     let current = await session("beto");

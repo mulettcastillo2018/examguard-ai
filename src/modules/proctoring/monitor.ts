@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db";
+import { labelSignals } from "@/modules/agents/labels";
 import { isAnswered } from "@/modules/attempts/answers";
 import { finalizeExpiredAttempts } from "@/modules/attempts/attempts";
 import type { CurrentUser } from "@/modules/auth/session";
@@ -44,6 +45,8 @@ export async function getExamMonitor(actor: CurrentUser, examId: string, now = n
             eventCount: true,
             browser: true,
             os: true,
+            reviewStatus: true,
+            signals: { select: { id: true, ruleId: true, type: true, category: true, severity: true, explanation: true, windowStart: true } },
             events: {
               orderBy: { occurredAt: "desc" },
               take: LAST_EVENTS,
@@ -93,6 +96,8 @@ export async function getExamMonitor(actor: CurrentUser, examId: string, now = n
               eventCount: session.eventCount,
               counts: countsBySession.get(session.id) ?? {},
               lastEvents: session.events,
+              reviewStatus: session.reviewStatus,
+              signals: labelSignals(session.signals),
             }
           : null,
       },
@@ -104,6 +109,7 @@ export async function getExamMonitor(actor: CurrentUser, examId: string, now = n
     questionCount,
     rows,
     summary: {
+      recommended: rows.filter((row) => row.attempt?.session?.reviewStatus === "RECOMMENDED").length,
       inProgress: rows.filter((row) => row.attempt?.status === "IN_PROGRESS").length,
       submitted: rows.filter((row) => row.attempt && row.attempt.status !== "IN_PROGRESS").length,
       notStarted: rows.filter((row) => !row.attempt).length,

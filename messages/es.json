@@ -917,5 +917,24 @@
       "state": "Estado",
       "lastEvent": "Último evento"
     }
+  },
+  "review": {
+    "status": {
+      "NOT_REQUIRED": "Sin revisión recomendada",
+      "RECOMMENDED": "Revisión recomendada",
+      "REVIEWED": "Revisada"
+    },
+    "heading": "Supervisión",
+    "signals": "Señales para revisar",
+    "noSignals": "Sin señales: los eventos registrados no superaron los umbrales de la institución.",
+    "noSession": "Este intento no tiene sesión de supervisión.",
+    "summary": "Resumen para quien revisa",
+    "generate": "Generar resumen",
+    "regenerate": "Volver a generar",
+    "generating": "Generando…",
+    "sourceAi": "Redactado por {model} a partir de las señales; pasó las barreras de lenguaje.",
+    "sourceTemplate": "Plantilla con las señales (sin IA, o el texto propuesto no pasó las barreras).",
+    "disclaimer": "Las señales y el resumen describen hechos observables. No establecen lo que ocurrió: la decisión es de quien revisa, que puede conocer explicaciones que no están en los datos.",
+    "recommendedCount": "{count, plural, =0 {Ninguna sesión con revisión recomendada} one {# sesión con revisión recomendada} other {# sesiones con revisión recomendada}}"
   }
 }
