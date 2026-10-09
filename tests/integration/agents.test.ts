@@ -147,6 +147,39 @@ describe.skipIf(!hasDatabase)("agentes y motor de reglas", () => {
     expect(current.signals.map((signal) => signal.type)).toEqual(["FULLSCREEN_EXITS"]);
   });
 
+  it("el resumen con IA se guarda si pasa las barreras; si no, queda la plantilla", async () => {
+    const { generateSessionSummary } = await import("@/modules/ai/summary");
+    const sessionId = (await session("ana")).id;
+    const fake = (text: string) => ({
+      name: "fake",
+      generate: async () => ({ text, provider: "fake", model: "modelo-de-prueba", latencyMs: 12, inputTokens: 200, outputTokens: 40 }),
+    });
+
+    // Las señales llegan en orden estable: S1 y S2 son las mismas que verá quien revisa.
+    const good = await generateSessionSummary(sessionId, {
+      provider: fake("Hubo 4 salidas de la pestaña en pocos minutos [S1] y una desconexión de 1 min 30 s [S2]. La decisión es de quien revisa."),
+    });
+    expect(good.source).toBe("fake:modelo-de-prueba");
+    expect(good.signals.map((signal) => signal.label)).toEqual(["S1", "S2"]);
+    let current = await session("ana");
+    expect(current.riskSummary).toContain("[S1]");
+    const accepted = current.agentRuns.find((run) => run.agent === "risk-summary");
+    expect(accepted).toMatchObject({ status: "SUCCESS", provider: "fake", model: "modelo-de-prueba", inputTokens: 200, outputTokens: 40 });
+
+    const blocked = await generateSessionSummary(sessionId, { provider: fake("Es evidente que copió [S1].") });
+    expect(blocked.source).toBe("template");
+    expect(blocked.text).toMatch(/^La sesión tiene 2 señales para revisar\./);
+    current = await session("ana");
+    const rejected = current.agentRuns.filter((run) => run.agent === "risk-summary").at(-1);
+    expect(rejected?.output).toMatchObject({ accepted: false, reasons: [expect.stringContaining("copió")] });
+
+    const failing = { name: "fake", generate: async () => Promise.reject(new Error("sin red")) };
+    expect((await generateSessionSummary(sessionId, { provider: failing })).source).toBe("template");
+    expect((await generateSessionSummary(sessionId, { provider: null })).source).toBe("template");
+    const statuses = (await session("ana")).agentRuns.filter((run) => run.agent === "risk-summary").map((run) => run.status);
+    expect(statuses.slice(-2)).toEqual(["ERROR", "SKIPPED"]);
+  });
+
   it("nunca pisa una revisión ya hecha por una persona y analiza de nuevo al entregar", async () => {
     await db.proctoringSession.update({ where: { attemptId: ids.caro! }, data: { reviewStatus: "REVIEWED" } });
     await send("caro", [{ type: "MULTIPLE_FACES", minute: 50, confidence: 0.95 }], 51);

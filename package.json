@@ -17,6 +17,7 @@
     "db:check": "prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@prisma/client": "6.19.3",
     "better-auth": "^1.7.7",
     "class-variance-authority": "^0.7.1",

@@ -14,8 +14,9 @@ const serverEnvSchema = z.object({
   // Intentos de inicio de sesión por minuto desde una misma IP (solo en producción).
   // Las pruebas E2E del CI lo suben porque inician sesión muchas veces desde la misma máquina.
   AUTH_SIGNIN_MAX_PER_MINUTE: z.coerce.number().int().min(1).max(1000).default(5),
-  // Proveedor de IA (Fase 5). Sin llave se usa el proveedor simulado.
-  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  // Proveedor de IA (Fase 5). Sin llave (o vacía) se usa la plantilla factual.
+  ANTHROPIC_API_KEY: z.preprocess((value) => (value === "" ? undefined : value), z.string().min(1).optional()),
+  ANTHROPIC_MODEL: z.string().min(1).default("claude-opus-5-5"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
