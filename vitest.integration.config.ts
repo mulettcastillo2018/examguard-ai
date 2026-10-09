@@ -15,7 +15,8 @@ export default defineConfig({
     include: ["tests/integration/**/*.test.ts"],
     setupFiles: ["tests/support/integration-setup.ts"],
     fileParallelism: false,
-    testTimeout: 30_000,
+    // Contra Neon desde la oficina cada consulta tarda cientos de ms; en CI la base es local.
+    testTimeout: 60_000,
     hookTimeout: 60_000,
   },
 });

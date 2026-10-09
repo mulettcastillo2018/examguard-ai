@@ -6,6 +6,7 @@ import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { recordAudit } from "@/modules/audit";
 import type { CurrentUser } from "@/modules/auth/session";
 import { readProctoringConfig } from "@/modules/exams/settings";
+import { analyzeSessionSafely } from "@/modules/agents/orchestrator";
 import { recordServerEvent, serverEvent, type DeviceInfo } from "@/modules/proctoring/proctoring";
 import { assertCan } from "@/modules/rbac";
 import { parseAnswerValue } from "./answers";
@@ -85,6 +86,8 @@ async function finalizeAttempt(attempt: ExamAttempt, now: Date, auto: boolean, a
   });
 
   if (closed) {
+    // Análisis final de la supervisión con todos los eventos de la sesión.
+    await analyzeSessionSafely({ attemptId: attempt.id }, now);
     const exam = await prisma.exam.findUniqueOrThrow({ where: { id: attempt.examId }, select: { institutionId: true } });
     await recordAudit({
       institutionId: exam.institutionId,

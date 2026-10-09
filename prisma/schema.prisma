@@ -79,6 +79,12 @@ enum ReviewStatus {
   REVIEWED
 }
 
+enum AgentRunStatus {
+  SUCCESS
+  ERROR
+  SKIPPED
+}
+
 model Institution {
   id        String     @id @default(cuid())
   name      String
@@ -422,7 +428,14 @@ model ProctoringSession {
   lastSeenAt          DateTime?
   lastEventAt         DateTime?
   eventCount          Int               @default(0)
+  // Resumen para quien revisa (se genera al abrir la revisión, a partir de las señales).
+  riskSummary         String?
+  riskSummaryProvider String?
+  riskSummaryAt       DateTime?
+  analyzedAt          DateTime?
   events              ProctoringEvent[]
+  signals             RiskSignal[]
+  agentRuns           AgentRun[]
 }
 
 model ProctoringEvent {
@@ -444,4 +457,47 @@ model ProctoringEvent {
 
   @@unique([sessionId, clientEventId])
   @@index([sessionId, occurredAt])
+}
+
+// Señal para revisión: la produce una regla con los umbrales de la institución. Describe
+// hechos observables y cita los eventos que la sustentan; nunca afirma intenciones.
+model RiskSignal {
+  id          String            @id @default(cuid())
+  sessionId   String
+  session     ProctoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  ruleId      String
+  type        String
+  category    EventCategory
+  severity    Severity
+  confidence  Float
+  explanation String
+  eventIds    String[]
+  windowStart DateTime
+  windowEnd   DateTime
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Una señal por regla y sesión: cada análisis la actualiza en lugar de duplicarla.
+  @@unique([sessionId, ruleId])
+  @@index([sessionId])
+}
+
+// Cada ejecución de un agente: latencia, errores, modelo y consumo de tokens.
+model AgentRun {
+  id           String            @id @default(cuid())
+  sessionId    String
+  session      ProctoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  agent        String
+  status       AgentRunStatus
+  provider     String?
+  model        String?
+  latencyMs    Int
+  inputTokens  Int?
+  outputTokens Int?
+  error        String?
+  output       Json?
+  createdAt    DateTime          @default(now())
+
+  @@index([agent, createdAt])
+  @@index([sessionId])
 }

@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import type { CurrentUser } from "@/modules/auth/session";
+import { analyzeSessionSafely } from "@/modules/agents/orchestrator";
 import { assertCan } from "@/modules/rbac";
 import { EVENT_CATALOG, eventBatchSchema, type EventType } from "./catalog";
 
@@ -141,5 +142,7 @@ export async function ingestEvents(actor: CurrentUser, attemptId: string, input:
       ...(inserted && lastEventAt && (!session.lastEventAt || lastEventAt > session.lastEventAt) ? { lastEventAt } : {}),
     },
   });
+  // Eventos nuevos: el orquestador vuelve a analizar la sesión (reglas baratas, síncronas).
+  if (inserted) await analyzeSessionSafely({ sessionId: session.id }, now);
   return { accepted: inserted, serverNow: now.toISOString() };
 }
