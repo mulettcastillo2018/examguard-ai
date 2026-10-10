@@ -308,9 +308,11 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
-function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
+// Cambio local: el registro usa <main>, pero el contenedor también lleva el encabezado y el
+// marco pone su propio <main>; dos regiones principales confunden a los lectores de pantalla.
+function SidebarInset({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <main
+    <div
       data-slot="sidebar-inset"
       className={cn(
         "relative flex w-full flex-1 flex-col bg-background",

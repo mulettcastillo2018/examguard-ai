@@ -105,23 +105,24 @@ test("los eventos simulados aparecen en vivo en el monitoreo del docente", async
   await expect(teacher.getByTestId("review-history")).toContainText("marcó «Requiere investigación adicional»");
   await expect(decision.getByRole("button", { name: "Actualizar revisión" })).toBeVisible();
 
-  // La sesión sale de la cola y queda entre las revisadas.
+  // La sesión sale de la cola y queda entre las revisadas (la más reciente primero: un
+  // reintento de la prueba deja otra sesión de Mateo).
   await teacher.goto("/teacher/reviews?status=REVIEWED");
-  await expect(teacher.getByTestId("review-queue").getByRole("listitem").filter({ hasText: "Mateo Cárdenas" })).toContainText(
+  await expect(teacher.getByTestId("review-queue").getByRole("listitem").filter({ hasText: "Mateo Cárdenas" }).first()).toContainText(
     "Requiere investigación adicional",
   );
 
   // El estudiante ve sus hechos registrados y que un docente revisó, pero no el resultado.
   await student.getByRole("link", { name: "Mis datos de supervisión" }).first().click();
   await expect(student).toHaveURL(/\/student\/my-data$/);
-  const mine = student.getByTestId("my-data-list").getByRole("listitem").filter({ hasText: "Taller de repaso" });
+  const mine = student.getByTestId("my-data-list").getByRole("listitem").filter({ hasText: "Taller de repaso" }).first();
   await expect(mine).toContainText("Revisada por un docente");
   await mine.getByRole("link", { name: "Ver detalle: Taller de repaso" }).click();
   const myEvents = student.getByTestId("my-data-events");
   await expect(myEvents).toContainText("Más de un rostro en la cámara");
   await expect(myEvents).toContainText("Salió de la pestaña del examen");
-  await expect(student.locator("main")).not.toContainText("Requiere investigación adicional");
-  await expect(student.locator("main")).not.toContainText("segundo rostro");
+  await expect(student.getByRole("main")).not.toContainText("Requiere investigación adicional");
+  await expect(student.getByRole("main")).not.toContainText("segundo rostro");
 
   await studentContext.close();
   await teacherContext.close();
