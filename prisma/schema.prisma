@@ -79,6 +79,13 @@ enum ReviewStatus {
   REVIEWED
 }
 
+// Decisión de quien revisa (sección 16 de la especificación). No existe "hizo trampa":
+// lo más fuerte es pedir una investigación adicional, que hacen personas fuera del sistema.
+enum ReviewOutcome {
+  NO_IRREGULARITY
+  NEEDS_INVESTIGATION
+}
+
 enum AgentRunStatus {
   SUCCESS
   ERROR
@@ -140,6 +147,7 @@ model User {
   accommodations Accommodation[]
   attempts       ExamAttempt[]
   answersGraded  Answer[]        @relation("AnswerGrader")
+  reviews        Review[]
 
   @@index([institutionId, role])
 }
@@ -436,6 +444,7 @@ model ProctoringSession {
   events              ProctoringEvent[]
   signals             RiskSignal[]
   agentRuns           AgentRun[]
+  review              Review?
 }
 
 model ProctoringEvent {
@@ -500,4 +509,20 @@ model AgentRun {
 
   @@index([agent, createdAt])
   @@index([sessionId])
+}
+
+// Revisión humana de una sesión (Fase 6). Una por sesión: si se cambia de opinión se
+// actualiza, y cada guardado queda en la auditoría con el resultado anterior.
+model Review {
+  id         String            @id @default(cuid())
+  sessionId  String            @unique
+  session    ProctoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User              @relation(fields: [reviewerId], references: [id])
+  outcome    ReviewOutcome
+  notes      String?
+  reviewedAt DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([reviewerId])
 }

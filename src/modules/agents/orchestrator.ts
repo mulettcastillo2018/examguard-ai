@@ -84,9 +84,11 @@ export async function analyzeSession(sessionId: string, now = new Date()) {
       // mezclan, y uno más viejo que el ya guardado (lotes que se cruzan) se descarta.
       const claimed = await tx.proctoringSession.updateMany({
         where: { id: sessionId, OR: [{ analyzedAt: null }, { analyzedAt: { lte: now } }] },
-        data: { reviewStatus, analyzedAt: now },
+        data: { analyzedAt: now },
       });
       if (claimed.count === 0) return false;
+      // Una revisión humana guardada mientras corría el análisis no se pisa.
+      await tx.proctoringSession.updateMany({ where: { id: sessionId, reviewStatus: { not: "REVIEWED" } }, data: { reviewStatus } });
 
       // Solo se escribe lo que cambió: casi siempre, nada.
       const stored = await tx.riskSignal.findMany({ where: { sessionId }, select: SIGNAL_FIELDS });
