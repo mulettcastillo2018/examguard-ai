@@ -307,10 +307,14 @@ export async function claimAttempt(actor: CurrentUser, attemptId: string, client
   }
   if (attempt.activeClientId === clientId) return attempt;
   const switched = attempt.activeClientId !== null;
-  const updated = await prisma.examAttempt.update({
-    where: { id: attemptId },
+  // Condicional: si el mismo equipo reclama dos veces a la vez (dos pestañas, un efecto
+  // doble), solo una petición registra el cambio.
+  const claimed = await prisma.examAttempt.updateMany({
+    where: { id: attemptId, status: "IN_PROGRESS", activeClientId: attempt.activeClientId },
     data: { activeClientId: clientId, ...(switched ? { clientSwitches: { increment: 1 } } : {}) },
   });
+  const updated = await prisma.examAttempt.findUniqueOrThrow({ where: { id: attemptId } });
+  if (claimed.count === 0) return updated;
   if (switched) {
     await recordServerEvent(prisma, attemptId, "DEVICE_SWITCHED", now);
     await recordAudit({

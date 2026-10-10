@@ -146,8 +146,13 @@ describe.skipIf(!hasDatabase)("supervisión: sesiones y eventos", () => {
   it("un lote vacío es señal de vida y un cambio de dispositivo queda registrado", async () => {
     await proctoring.ingestEvents(beto, ids.beto as string, { clientId: "pc-beto", sentAt: at(40).toISOString(), events: [] }, at(40));
     expect((await sessionOf(ids.beto as string)).lastSeenAt?.toISOString()).toBe(at(40).toISOString());
-    await attempts.claimAttempt(beto, ids.beto as string, "tablet-beto", at(41));
-    expect((await sessionOf(ids.beto as string)).events.map((e) => e.type)).toContain("DEVICE_SWITCHED");
+    // El mismo equipo nuevo reclama dos veces a la vez: cuenta como un solo cambio.
+    await Promise.all([
+      attempts.claimAttempt(beto, ids.beto as string, "tablet-beto", at(41)),
+      attempts.claimAttempt(beto, ids.beto as string, "tablet-beto", at(41)),
+    ]);
+    expect((await sessionOf(ids.beto as string)).events.filter((e) => e.type === "DEVICE_SWITCHED")).toHaveLength(1);
+    expect((await db.examAttempt.findUniqueOrThrow({ where: { id: ids.beto as string } })).clientSwitches).toBe(1);
   });
 
   it("al entregar cierra la sesión y deja de aceptar eventos", async () => {
