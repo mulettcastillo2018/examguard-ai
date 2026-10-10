@@ -77,6 +77,52 @@ test("los eventos simulados aparecen en vivo en el monitoreo del docente", async
   await expect(supervision.getByTestId("risk-summary")).toContainText("[S1] La cámara detectó más de un rostro");
   await expect(supervision.getByRole("button", { name: "Volver a generar" })).toBeVisible();
 
+  // Criterio de la Fase 6: quien revisa abre la sesión, filtra la línea de tiempo y decide.
+  await supervision.getByRole("link", { name: "Abrir la revisión" }).click();
+  await expect(teacher).toHaveURL(/\/teacher\/reviews\/[a-z0-9]+$/);
+  await expect(teacher.getByRole("heading", { name: "Revisión de Mateo Cárdenas" })).toBeVisible();
+  await expect(teacher.getByTestId("review-signals")).toContainText("La cámara detectó más de un rostro");
+  const timeline = teacher.getByTestId("review-timeline");
+  await expect(timeline.getByTestId("event-item").filter({ hasText: "Más de un rostro en la cámara" })).toContainText("S1");
+  await expect(timeline).toContainText("Salió de la pestaña del examen");
+
+  await teacher.getByLabel("Categoría").selectOption("VISION");
+  await teacher.getByRole("button", { name: "Filtrar" }).click();
+  await expect(teacher).toHaveURL(/category=VISION/);
+  await expect(timeline).toContainText("Más de un rostro en la cámara");
+  await expect(timeline).not.toContainText("Salió de la pestaña del examen");
+  await teacher.getByRole("link", { name: "Quitar filtros" }).click();
+  await expect(timeline).toContainText("Salió de la pestaña del examen");
+
+  // Pedir una investigación exige explicar por qué.
+  const decision = teacher.getByTestId("review-decision");
+  await decision.getByRole("radio", { name: "Requiere investigación adicional" }).click();
+  await decision.getByRole("button", { name: "Guardar revisión" }).click();
+  await expect(decision.getByRole("alert")).toContainText("mínimo 10 caracteres");
+  await decision.getByLabel("Observaciones").fill("Conversar con el estudiante sobre el segundo rostro que registró la cámara.");
+  await decision.getByRole("button", { name: "Guardar revisión" }).click();
+  await expect(teacher.getByText("Revisión guardada.")).toBeVisible();
+  await expect(teacher.getByTestId("review-history")).toContainText("marcó «Requiere investigación adicional»");
+  await expect(decision.getByRole("button", { name: "Actualizar revisión" })).toBeVisible();
+
+  // La sesión sale de la cola y queda entre las revisadas.
+  await teacher.goto("/teacher/reviews?status=REVIEWED");
+  await expect(teacher.getByTestId("review-queue").getByRole("listitem").filter({ hasText: "Mateo Cárdenas" })).toContainText(
+    "Requiere investigación adicional",
+  );
+
+  // El estudiante ve sus hechos registrados y que un docente revisó, pero no el resultado.
+  await student.getByRole("link", { name: "Mis datos de supervisión" }).first().click();
+  await expect(student).toHaveURL(/\/student\/my-data$/);
+  const mine = student.getByTestId("my-data-list").getByRole("listitem").filter({ hasText: "Taller de repaso" });
+  await expect(mine).toContainText("Revisada por un docente");
+  await mine.getByRole("link", { name: "Ver detalle: Taller de repaso" }).click();
+  const myEvents = student.getByTestId("my-data-events");
+  await expect(myEvents).toContainText("Más de un rostro en la cámara");
+  await expect(myEvents).toContainText("Salió de la pestaña del examen");
+  await expect(student.locator("main")).not.toContainText("Requiere investigación adicional");
+  await expect(student.locator("main")).not.toContainText("segundo rostro");
+
   await studentContext.close();
   await teacherContext.close();
 });

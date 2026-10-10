@@ -87,6 +87,7 @@ export async function getExamMonitor(actor: CurrentUser, examId: string, now = n
         answered: attempt.answers.filter((answer) => isAnswered(answer.examQuestion.type, answer.value)).length,
         session: session
           ? {
+              id: session.id,
               cameraEnabled: session.cameraEnabled,
               microphoneEnabled: session.microphoneEnabled,
               browser: session.browser,

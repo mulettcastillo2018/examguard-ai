@@ -8,8 +8,21 @@ import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { generateSummaryAction } from "../../../actions";
 
-/** Resumen para quien revisa: se genera al pedirlo (Claude o la plantilla) y queda guardado. */
-export function SummaryPanel({ examId, attemptId, initial }: { examId: string; attemptId: string; initial: { text: string; source: string } | null }) {
+/**
+ * Resumen para quien revisa: se genera al pedirlo (Claude o la plantilla) y queda guardado.
+ * `disclaimer={false}` cuando la tarjeta que lo contiene ya muestra el aviso.
+ */
+export function SummaryPanel({
+  examId,
+  attemptId,
+  initial,
+  disclaimer = true,
+}: {
+  examId: string;
+  attemptId: string;
+  initial: { text: string; source: string } | null;
+  disclaimer?: boolean;
+}) {
   const t = useTranslations("review");
   const [summary, setSummary] = useState(initial);
   const [pending, setPending] = useState(false);
@@ -43,7 +56,7 @@ export function SummaryPanel({ examId, attemptId, initial }: { examId: string; a
           <p className="text-xs text-muted-foreground">{model ? t("sourceAi", { model }) : t("sourceTemplate")}</p>
         </div>
       ) : null}
-      <p className="text-xs text-muted-foreground">{t("disclaimer")}</p>
+      {disclaimer ? <p className="text-xs text-muted-foreground">{t("disclaimer")}</p> : null}
     </div>
   );
 }

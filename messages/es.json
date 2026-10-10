@@ -254,7 +254,8 @@
       "ATTEMPT_DEVICE_CHANGED": "Continuó el examen en otra pestaña o dispositivo",
       "ANSWER_GRADED": "Calificó una respuesta",
       "RESULTS_PUBLISHED": "Publicó los resultados de un examen",
-      "EXAM_CLOSED": "Cerró un examen"
+      "EXAM_CLOSED": "Cerró un examen",
+      "SESSION_REVIEWED": "Revisó una sesión de supervisión"
     },
     "entities": {
       "Session": "Sesión",
@@ -263,7 +264,8 @@
       "Institution": "Institución",
       "Question": "Pregunta",
       "Exam": "Examen",
-      "ExamAttempt": "Intento de examen"
+      "ExamAttempt": "Intento de examen",
+      "ProctoringSession": "Sesión de supervisión"
     }
   },
   "teacher": {
@@ -916,7 +918,8 @@
       "student": "Estudiante",
       "state": "Estado",
       "lastEvent": "Último evento"
-    }
+    },
+    "openReview": "Revisar la sesión de {name}"
   },
   "review": {
     "status": {
@@ -935,6 +938,135 @@
     "sourceAi": "Redactado por {model} a partir de las señales; pasó las barreras de lenguaje.",
     "sourceTemplate": "Plantilla con las señales (sin IA, o el texto propuesto no pasó las barreras).",
     "disclaimer": "Las señales y el resumen describen hechos observables. No establecen lo que ocurrió: la decisión es de quien revisa, que puede conocer explicaciones que no están en los datos.",
-    "recommendedCount": "{count, plural, =0 {Ninguna sesión con revisión recomendada} one {# sesión con revisión recomendada} other {# sesiones con revisión recomendada}}"
+    "recommendedCount": "{count, plural, =0 {Ninguna sesión con revisión recomendada} one {# sesión con revisión recomendada} other {# sesiones con revisión recomendada}}",
+    "openReview": "Abrir la revisión",
+    "outcome": {
+      "NO_IRREGULARITY": "Sin irregularidad observada",
+      "NEEDS_INVESTIGATION": "Requiere investigación adicional"
+    }
+  },
+  "reviews": {
+    "title": "Revisión de sesiones",
+    "description": "Sesiones en las que las reglas recomendaron una revisión humana. Ábrelas para ver la línea de tiempo y dejar tu decisión.",
+    "filterLabel": "Mostrar",
+    "filters": {
+      "RECOMMENDED": "Por revisar ({count})",
+      "REVIEWED": "Revisadas ({count})",
+      "ALL": "Todas"
+    },
+    "empty": {
+      "RECOMMENDED": "No hay sesiones por revisar.",
+      "REVIEWED": "Todavía no hay sesiones revisadas.",
+      "ALL": "Todavía no hay sesiones con revisión recomendada ni revisadas."
+    },
+    "attempt": "Intento {number}",
+    "signals": "{count, plural, =0 {Sin señales} one {# señal} other {# señales}}",
+    "events": "{count, plural, =0 {sin eventos} one {# evento} other {# eventos}}",
+    "reviewedBy": "{name}, {date}",
+    "inProgress": "Presentando",
+    "open": "Revisar",
+    "view": "Ver revisión"
+  },
+  "sessionReview": {
+    "title": "Revisión de {name}",
+    "description": "{exam} · {course} · Intento {number}",
+    "back": "Revisión de sesiones",
+    "info": {
+      "title": "Sesión",
+      "started": "Inicio",
+      "ended": "Fin",
+      "duration": "Duración",
+      "notEnded": "Sin terminar",
+      "device": "Navegador y sistema",
+      "unknown": "No disponible",
+      "camera": "Cámara",
+      "microphone": "Micrófono",
+      "authorized": "Autorizada",
+      "notAuthorized": "No autorizada",
+      "microphoneAuthorized": "Autorizado",
+      "microphoneNotAuthorized": "No autorizado",
+      "consent": "Consentimiento",
+      "consentValue": "Versión {version}, otorgado por {grantor}",
+      "noConsent": "Sin registro de consentimiento",
+      "grantor": {
+        "STUDENT": "el estudiante",
+        "GUARDIAN": "su acudiente"
+      },
+      "deviceSwitches": "Cambios de dispositivo",
+      "minor": "Menor de edad"
+    },
+    "signals": {
+      "title": "Señales",
+      "none": "Sin señales: los eventos no superaron los umbrales de la institución."
+    },
+    "summary": {
+      "title": "Resumen para quien revisa",
+      "none": "Todavía no se ha generado."
+    },
+    "timeline": {
+      "title": "Línea de tiempo",
+      "description": "Todos los eventos de la sesión en orden. Los marcados con S1, S2… son los que cita cada señal.",
+      "count": "{shown} de {total} eventos",
+      "empty": "No hay eventos con esos filtros.",
+      "category": "Categoría",
+      "severity": "Severidad",
+      "source": "Origen",
+      "all": "Todos",
+      "apply": "Filtrar",
+      "clear": "Quitar filtros",
+      "cited": "Citado por {labels}"
+    },
+    "decision": {
+      "title": "Tu decisión",
+      "current": "Revisada: {outcome}",
+      "by": "Por {name}, {date}",
+      "outcomeLabel": "Resultado de la revisión",
+      "notes": "Observaciones",
+      "notesHint": "Describe lo que observaste en los hechos, no intenciones. Si pides una investigación, explica por qué.",
+      "notesRequired": "Explica en las observaciones por qué hace falta investigar (mínimo {min} caracteres).",
+      "notesTooLong": "Las observaciones no pueden pasar de {max} caracteres.",
+      "outcomeRequired": "Elige un resultado.",
+      "save": "Guardar revisión",
+      "update": "Actualizar revisión",
+      "saving": "Guardando…",
+      "saved": "Revisión guardada.",
+      "inProgress": "El estudiante todavía está presentando: podrás revisar cuando entregue.",
+      "reminder": "Revisar no es acusar: la decisión queda en la auditoría y cualquier investigación la hacen personas, fuera del sistema."
+    },
+    "history": {
+      "title": "Historial",
+      "entry": "{name} marcó «{outcome}»",
+      "changed": "{name} cambió de «{previous}» a «{outcome}»",
+      "empty": "Sin revisiones todavía."
+    }
+  },
+  "myData": {
+    "title": "Mis datos de supervisión",
+    "description": "Lo que la plataforma registró en tus exámenes: solo hechos con su hora, como cambios de pestaña, pérdida de foco o inactividad. No se graba video ni audio.",
+    "empty": "Todavía no tienes sesiones de supervisión.",
+    "retention": "Tu institución conserva estos eventos {days} días; después se borran. Tu nota se conserva.",
+    "attempt": "Intento {number}",
+    "events": "{count, plural, =0 {Sin eventos} one {# evento} other {# eventos}}",
+    "open": "Ver detalle",
+    "reviewState": {
+      "NONE": "Sin revisión",
+      "PENDING": "Revisión pendiente por un docente",
+      "DONE": "Revisada por un docente"
+    },
+    "detail": {
+      "back": "Mis datos de supervisión",
+      "subtitle": "{course} · Intento {number}",
+      "authorized": "Lo que autorizaste",
+      "camera": "Cámara: {state}",
+      "microphone": "Micrófono: {state}",
+      "yes": "sí",
+      "no": "no",
+      "consent": "Consentimiento (versión {version}) otorgado el {date} por {grantor}.",
+      "device": "Navegador: {browser} en {os}",
+      "events": "Eventos registrados",
+      "noEvents": "No se registró ningún evento en esta sesión.",
+      "meaning": "Un evento es un hecho con su hora; ninguno, por sí solo, significa que hiciste algo indebido. Si hace falta una revisión, la hace un docente, que puede tener en cuenta explicaciones que no están en estos datos.",
+      "question": "¿Algo no corresponde a lo que pasó? Escríbele a tu docente o a la institución: puedes pedir que se aclare o se corrija."
+    }
   }
 }

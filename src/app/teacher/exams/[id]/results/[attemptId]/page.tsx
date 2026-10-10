@@ -75,7 +75,12 @@ export default async function AttemptDetailPage({ params }: PageProps<"/teacher/
           <CardHeader className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle>{tReview("heading")}</CardTitle>
             {session ? (
-              <Badge variant={session.reviewStatus === "RECOMMENDED" ? "destructive" : "outline"}>{tReview(`status.${session.reviewStatus}`)}</Badge>
+              <span className="flex flex-wrap items-center gap-3">
+                <Badge variant={session.reviewStatus === "RECOMMENDED" ? "destructive" : "outline"}>{tReview(`status.${session.reviewStatus}`)}</Badge>
+                <Link href={`/teacher/reviews/${session.id}`} className="text-sm text-primary underline-offset-4 hover:underline">
+                  {tReview("openReview")}
+                </Link>
+              </span>
             ) : null}
           </CardHeader>
           <CardContent className="grid gap-4 text-sm">

@@ -5,22 +5,28 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requirePageUser } from "@/modules/auth/session";
 import { listTeacherCourses } from "@/modules/courses/courses";
-import { countTeacherExams } from "@/modules/exams/exams";
+import { countTeacherExams, teacherActivityStats } from "@/modules/exams/exams";
+import { countPendingReviews } from "@/modules/review/review";
 
 export default async function TeacherOverviewPage() {
   const user = await requirePageUser({ roles: ["TEACHER"] });
   const t = await getTranslations();
-  const [courses, examCount] = await Promise.all([listTeacherCourses(user), countTeacherExams(user)]);
+  const [courses, examCount, activity, pendingReviews] = await Promise.all([
+    listTeacherCourses(user),
+    countTeacherExams(user),
+    teacherActivityStats(user),
+    countPendingReviews(user),
+  ]);
 
-  // Indicadores de la sección 11 de la especificación; los demás se llenan en las Fases 3 y 6.
+  // Indicadores de la sección 11 de la especificación.
   return (
     <>
       <PageHeader title={t("teacher.overview.title")} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label={t("teacher.overview.examsCreated")} value={examCount} />
-        <StatCard label={t("teacher.overview.examsActive")} value={null} hint={t("common.notAvailableYet", { phase: 3 })} />
-        <StatCard label={t("teacher.overview.studentsEvaluated")} value={null} hint={t("common.notAvailableYet", { phase: 3 })} />
-        <StatCard label={t("teacher.overview.pendingSessions")} value={null} hint={t("common.notAvailableYet", { phase: 6 })} />
+        <StatCard label={t("teacher.overview.examsActive")} value={activity.examsActive} />
+        <StatCard label={t("teacher.overview.studentsEvaluated")} value={activity.studentsEvaluated} />
+        <StatCard label={t("teacher.overview.pendingSessions")} value={pendingReviews} />
       </div>
       <Card className="mt-6">
         <CardHeader>

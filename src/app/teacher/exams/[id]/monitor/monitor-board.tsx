@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
+import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { EventItem, type EventView } from "@/components/proctoring/event-item";
@@ -139,7 +140,16 @@ export function MonitorBoard({ examId, initial }: { examId: string; initial: Mon
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant={attempt.status === "IN_PROGRESS" ? "default" : "secondary"}>{t(`status.${attempt.status}`)}</Badge>
                           {session && session.reviewStatus !== "NOT_REQUIRED" ? (
-                            <Badge variant={session.reviewStatus === "RECOMMENDED" ? "destructive" : "outline"}>{tReview(`status.${session.reviewStatus}`)}</Badge>
+                            <>
+                              <Badge variant={session.reviewStatus === "RECOMMENDED" ? "destructive" : "outline"}>{tReview(`status.${session.reviewStatus}`)}</Badge>
+                              <Link
+                                href={`/teacher/reviews/${session.id}`}
+                                className="text-xs text-primary underline-offset-4 hover:underline"
+                                aria-label={t("openReview", { name: row.student.name })}
+                              >
+                                {tReview("openReview")}
+                              </Link>
+                            </>
                           ) : null}
                           {attempt.status === "IN_PROGRESS" ? (
                             <span className="flex items-center gap-1.5 text-xs">

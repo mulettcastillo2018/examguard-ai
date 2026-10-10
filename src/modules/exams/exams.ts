@@ -96,6 +96,23 @@ export async function countTeacherExams(actor: CurrentUser) {
   });
 }
 
+/** Indicadores del panel docente: exámenes abiertos ahora y estudiantes con al menos un intento entregado. */
+export async function teacherActivityStats(actor: CurrentUser, now = new Date()) {
+  assertCan(actor, "exams:manage");
+  const mine: Prisma.ExamWhereInput = { institutionId: actor.institutionId, course: { teachers: { some: { teacherId: actor.id } } } };
+  const [examsActive, evaluated] = await Promise.all([
+    prisma.exam.count({
+      where: {
+        ...mine,
+        status: "PUBLISHED",
+        AND: [{ OR: [{ startsAt: null }, { startsAt: { lte: now } }] }, { OR: [{ endsAt: null }, { endsAt: { gte: now } }] }],
+      },
+    }),
+    prisma.examAttempt.groupBy({ by: ["studentId"], where: { exam: mine, status: { not: "IN_PROGRESS" } } }),
+  ]);
+  return { examsActive, studentsEvaluated: evaluated.length };
+}
+
 /** Todo lo que necesita el constructor. Incluye las claves: es solo para docentes del curso. */
 export async function getExamForTeacher(actor: CurrentUser, examId: string, now = new Date()) {
   const exam = await findManageableExam(actor, examId);

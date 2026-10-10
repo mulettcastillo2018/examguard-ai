@@ -28,8 +28,8 @@ export function useDuration() {
   };
 }
 
-/** Un evento como hecho: qué, cuándo, cuánto duró y de dónde vino. */
-export function EventItem({ event }: { event: EventView }) {
+/** Un evento como hecho: qué, cuándo, cuánto duró y de dónde vino (y qué señales lo citan, si se indica). */
+export function EventItem({ event, citedBy = [] }: { event: EventView; citedBy?: string[] }) {
   const t = useTranslations("proctoring");
   const format = useFormatter();
   const duration = useDuration();
@@ -51,6 +51,11 @@ export function EventItem({ event }: { event: EventView }) {
               {t("source.SIMULATION")}
             </Badge>
           ) : null}
+          {citedBy.map((label) => (
+            <span key={label} className="rounded border border-primary/40 px-1 text-[11px] font-medium text-primary tabular-nums" title={label}>
+              {label}
+            </span>
+          ))}
         </span>
         <span className="text-xs text-muted-foreground tabular-nums">
           {format.dateTime(new Date(event.occurredAt), { hour: "2-digit", minute: "2-digit", second: "2-digit" })}

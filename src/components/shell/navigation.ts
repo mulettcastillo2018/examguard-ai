@@ -17,18 +17,18 @@ export const NAVIGATION: Record<Role, NavItem[]> = {
     { key: "users", icon: "users", href: "/admin/users" },
     { key: "courses", icon: "courses", href: "/admin/courses" },
     { key: "audit", icon: "audit", href: "/admin/audit" },
-    { key: "reviews", icon: "reviews", phase: 6 },
+    { key: "reviews", icon: "reviews", href: "/admin/reviews" },
   ],
   TEACHER: [
     { key: "overview", icon: "home", href: "/teacher" },
     { key: "exams", icon: "exams", href: "/teacher/exams" },
     { key: "questionBank", icon: "questions", href: "/teacher/question-bank" },
-    { key: "reviews", icon: "reviews", phase: 6 },
+    { key: "reviews", icon: "reviews", href: "/teacher/reviews" },
   ],
   STUDENT: [
     { key: "overview", icon: "home", href: "/student" },
     { key: "myExams", icon: "exams", href: "/student/exams" },
     { key: "results", icon: "results", href: "/student/results" },
-    { key: "myData", icon: "privacy", phase: 6 },
+    { key: "myData", icon: "privacy", href: "/student/my-data" },
   ],
 };
