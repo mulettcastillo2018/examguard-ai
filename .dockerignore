@@ -1,0 +1,16 @@
+# Nada de secretos ni artefactos locales en la imagen.
+.env
+.env.*
+!.env.example
+.git
+.github
+.next
+node_modules
+public/mediapipe
+.prisma-engines
+coverage
+test-results
+playwright-report
+*.log
+docs
+tests

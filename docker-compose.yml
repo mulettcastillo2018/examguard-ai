@@ -1,0 +1,50 @@
+# ExamGuard AI con PostgreSQL en local (requiere Docker). Variables obligatorias en un
+# archivo .env junto a este (BETTER_AUTH_SECRET, de al menos 32 caracteres).
+#   docker compose up --build        → http://localhost:3000
+#   docker compose run --rm seed     → datos de demostración (SEED_PASSWORD en .env)
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: examguard
+      POSTGRES_PASSWORD: examguard
+      POSTGRES_DB: examguard
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U examguard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://examguard:examguard@db:5432/examguard
+      DIRECT_URL: postgresql://examguard:examguard@db:5432/examguard
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Define BETTER_AUTH_SECRET en .env}
+      BETTER_AUTH_URL: http://localhost:3000
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Datos de demostración (usa la etapa de construcción, que tiene todas las dependencias).
+  seed:
+    build:
+      context: .
+      target: build
+    command: npm run db:seed
+    profiles: ["seed"]
+    environment:
+      DATABASE_URL: postgresql://examguard:examguard@db:5432/examguard
+      DIRECT_URL: postgresql://examguard:examguard@db:5432/examguard
+      SEED_PASSWORD: ${SEED_PASSWORD:?Define SEED_PASSWORD en .env}
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  db-data:

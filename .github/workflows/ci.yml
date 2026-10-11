@@ -87,3 +87,53 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+
+  # La imagen de Docker de producción: se construye, arranca contra una base desechable
+  # (aplica las migraciones al iniciar) y responde con la base conectada.
+  docker:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: examguard
+          POSTGRES_PASSWORD: examguard
+          POSTGRES_DB: examguard_docker
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U examguard"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Construir la imagen
+        run: docker build -t examguard-ai:ci .
+
+      - name: La imagen no lleva secretos y trae los modelos
+        run: |
+          docker run --rm --entrypoint sh examguard-ai:ci -c 'test ! -e .env && test -f public/models/blaze_face_short_range.tflite && test -f public/mediapipe/vision_wasm_internal.wasm'
+
+      - name: Arrancar el contenedor
+        env:
+          DATABASE_URL: postgresql://examguard:examguard@localhost:5432/examguard_docker
+          DIRECT_URL: postgresql://examguard:examguard@localhost:5432/examguard_docker
+          BETTER_AUTH_SECRET: secreto-solo-para-ci-0123456789abcdefghijklmnop
+          BETTER_AUTH_URL: http://localhost:3000
+        run: docker run -d --name examguard --network host -e DATABASE_URL -e DIRECT_URL -e BETTER_AUTH_SECRET -e BETTER_AUTH_URL examguard-ai:ci
+
+      - name: Responde con la base conectada y las cabeceras de seguridad
+        run: |
+          for i in $(seq 1 45); do
+            if curl -fsS http://localhost:3000/api/health; then break; fi
+            sleep 2
+          done
+          curl -fsS http://localhost:3000/api/health | grep -q '"db":true'
+          curl -fsSI http://localhost:3000/login | tee headers.txt
+          grep -qi "content-security-policy: default-src 'self'" headers.txt
+          grep -qi "permissions-policy: camera=(self), microphone=(self)" headers.txt
+
+      - name: Registro del contenedor si algo falla
+        if: failure()
+        run: docker logs examguard
