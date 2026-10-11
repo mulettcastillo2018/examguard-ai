@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { CameraCheck, MicrophoneCheck } from "@/components/proctoring/media-check";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { getClientId } from "@/lib/client-id";
+import type { MediaErrorCode } from "@/lib/media/devices";
+import type { DeviceState } from "@/lib/media/use-devices";
 import { startAttemptAction } from "../actions";
 
 type CheckState = "running" | "ok" | "warn" | "fail";
@@ -113,6 +116,31 @@ export function StartExam({
   const { results, running, run } = useCompatibility(requests.fullscreen);
   const [camera, setCamera] = useState(false);
   const [microphone, setMicrophone] = useState(false);
+  // Al autorizar se prueba el dispositivo aquí mismo; si el navegador no lo da, se desmarca.
+  const [cameraState, setCameraState] = useState<DeviceState>("off");
+  const [microphoneState, setMicrophoneState] = useState<DeviceState>("off");
+  const [cameraError, setCameraError] = useState<MediaErrorCode | null>(null);
+  const [microphoneError, setMicrophoneError] = useState<MediaErrorCode | null>(null);
+  const tMedia = useTranslations("media");
+
+  const onCamera = useCallback((state: DeviceState, code: MediaErrorCode | null) => {
+    setCameraState(state);
+    if (state === "error") {
+      setCamera(false);
+      setCameraError(code);
+    }
+  }, []);
+  const onMicrophone = useCallback((state: DeviceState, code: MediaErrorCode | null) => {
+    setMicrophoneState(state);
+    if (state === "error") {
+      setMicrophone(false);
+      setMicrophoneError(code);
+    }
+  }, []);
+  const devicesPending = (camera && cameraState !== "on") || (microphone && microphoneState !== "on");
+  // Al empezar se apagan las pruebas: la pantalla del examen vuelve a pedir los dispositivos
+  // y no deben estar en manos de esta.
+  const [released, setReleased] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [pending, setPending] = useState(false);
 
@@ -122,9 +150,11 @@ export function StartExam({
 
   async function start() {
     setPending(true);
+    setReleased(true);
     const result = await startAttemptAction(examId, { clientId: getClientId(), consent: { camera, microphone } });
     if (!result.ok) {
       setPending(false);
+      setReleased(false);
       toast.error(result.error);
       router.refresh();
       return;
@@ -184,16 +214,44 @@ export function StartExam({
 
           <fieldset disabled={!hydrated || pending} className="grid gap-3">
             {askCamera ? (
-              <Label className="flex items-center gap-2 font-normal">
-                <Checkbox checked={camera} onCheckedChange={(checked) => setCamera(checked === true)} />
-                {t("consent.allowCamera")}
-              </Label>
+              <div className="grid gap-2">
+                <Label className="flex items-center gap-2 font-normal">
+                  <Checkbox
+                    checked={camera}
+                    onCheckedChange={(checked) => {
+                      setCamera(checked === true);
+                      setCameraError(null);
+                    }}
+                  />
+                  {t("consent.allowCamera")}
+                </Label>
+                {camera && !released ? <CameraCheck onChange={onCamera} /> : null}
+                {cameraError ? (
+                  <p role="alert" className="text-sm text-amber-700" data-testid="camera-error">
+                    <span className="font-medium">{tMedia("cameraErrorTitle")}.</span> {tMedia(`errors.${cameraError}`)} {tMedia("withoutCamera")}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
             {askMicrophone ? (
-              <Label className="flex items-center gap-2 font-normal">
-                <Checkbox checked={microphone} onCheckedChange={(checked) => setMicrophone(checked === true)} />
-                {t("consent.allowMicrophone")}
-              </Label>
+              <div className="grid gap-2">
+                <Label className="flex items-center gap-2 font-normal">
+                  <Checkbox
+                    checked={microphone}
+                    onCheckedChange={(checked) => {
+                      setMicrophone(checked === true);
+                      setMicrophoneError(null);
+                    }}
+                  />
+                  {t("consent.allowMicrophone")}
+                </Label>
+                {microphone && !released ? <MicrophoneCheck onChange={onMicrophone} /> : null}
+                {microphoneError ? (
+                  <p role="alert" className="text-sm text-amber-700" data-testid="microphone-error">
+                    <span className="font-medium">{tMedia("microphoneErrorTitle")}.</span> {tMedia(`errors.${microphoneError}`)} {tMedia("withoutMicrophone")}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
             <Label className="flex items-center gap-2 font-medium">
               <Checkbox checked={acknowledged} onCheckedChange={(checked) => setAcknowledged(checked === true)} />
@@ -204,7 +262,7 @@ export function StartExam({
           <div className="grid gap-2">
             <p className="text-xs text-muted-foreground">{t("lobby.timerNotice")}</p>
             <div>
-              <Button onClick={start} disabled={!hydrated || pending || !acknowledged || connectionFailed}>
+              <Button onClick={start} disabled={!hydrated || pending || !acknowledged || connectionFailed || devicesPending}>
                 {pending ? <Loader2 className="animate-spin" /> : <Play />}
                 {pending ? t("lobby.starting") : t("lobby.start")}
               </Button>

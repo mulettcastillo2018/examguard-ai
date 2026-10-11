@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# WASM de MediaPipe, copiado de node_modules (scripts/copy-mediapipe.mjs)
+/public/mediapipe/
+
 # production
 /build
 

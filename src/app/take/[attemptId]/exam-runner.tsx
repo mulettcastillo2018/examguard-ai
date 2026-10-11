@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Clock, CloudOff, Expand, Loader2, Send } from "lucide-react";
@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { getClientId } from "@/lib/client-id";
+import type { MediaEvent } from "@/lib/media/devices";
 import { cn } from "@/lib/utils";
 import { isAnswered } from "@/modules/attempts/answers";
 import type { ClientEvent } from "@/modules/proctoring/catalog";
@@ -29,6 +30,7 @@ import type { QuestionType } from "@/modules/question-bank/content";
 import { createAnswerSync, SyncHttpError, type SavedAnswer, type SyncBlock, type SyncState } from "./answer-sync";
 import { startDetectors } from "./proctoring/detectors";
 import { createEventQueue, QueueHttpError } from "./proctoring/event-queue";
+import { MediaStatus } from "./proctoring/media-status";
 import { SimulatorPanel } from "./proctoring/simulator-panel";
 
 export interface RunnerQuestion {
@@ -304,9 +306,12 @@ export function ExamRunner({
 
   async function finish(auto: boolean) {
     setSubmitting(true);
+    // Apagar cámara y micrófono cierra sus episodios en curso, que así salen con el último lote.
+    closeMedia.current?.();
     await Promise.all([sync.flush({ keepalive: auto }), events.flush({ keepalive: auto })]);
     if (sync.hasPending() && !auto) {
       setSubmitting(false);
+      setMediaRun((run) => run + 1);
       toast.error(t("submitFailed"));
       return;
     }
@@ -330,7 +335,10 @@ export function ExamRunner({
         setBlocker(error.code === "otherDevice" ? "otherDevice" : "timeUp");
         return;
       }
-      if (!auto) toast.error(t("submitFailed"));
+      if (!auto) {
+        setMediaRun((run) => run + 1);
+        toast.error(t("submitFailed"));
+      }
     }
   }
 
@@ -434,6 +442,10 @@ export function ExamRunner({
     events.start();
     return startDetectors({ doc: document, win: window }, (event) => events.push(event), { fullscreen: supervision.fullscreen });
   }, [supervising, supervision.fullscreen, events]);
+  const pushMediaEvent = useCallback((event: MediaEvent) => events.push({ ...event, clientEventId: crypto.randomUUID() }), [events]);
+  const closeMedia = useRef<(() => void) | null>(null);
+  // Si la entrega falla y el estudiante sigue presentando, la cámara y el micrófono vuelven.
+  const [mediaRun, setMediaRun] = useState(0);
 
   useEffect(() => {
     const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -474,6 +486,9 @@ export function ExamRunner({
             </p>
           </div>
           <div className="flex items-center gap-4">
+            {supervising && (supervision.camera || supervision.microphone) ? (
+              <MediaStatus key={mediaRun} camera={supervision.camera} microphone={supervision.microphone} emit={pushMediaEvent} closeRef={closeMedia} />
+            ) : null}
             {supervision.fullscreen && !fullscreen ? (
               <Button variant="outline" size="sm" onClick={() => void document.documentElement.requestFullscreen?.().catch(() => undefined)}>
                 <Expand />

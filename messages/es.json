@@ -843,6 +843,7 @@
       "FACE_NOT_VISIBLE": "Ningún rostro visible en la cámara",
       "FACE_OUT_OF_FRAME": "Rostro fuera del encuadre",
       "MULTIPLE_FACES": "Más de un rostro en la cámara",
+      "CAMERA_DISCONNECTED": "Se desconectó la cámara",
       "AUDIO_ACTIVITY": "Sonido detectado por el micrófono",
       "MICROPHONE_DISCONNECTED": "Se desconectó el micrófono"
     },
@@ -1067,6 +1068,37 @@
       "noEvents": "No se registró ningún evento en esta sesión.",
       "meaning": "Un evento es un hecho con su hora; ninguno, por sí solo, significa que hiciste algo indebido. Si hace falta una revisión, la hace un docente, que puede tener en cuenta explicaciones que no están en estos datos.",
       "question": "¿Algo no corresponde a lo que pasó? Escríbele a tu docente o a la institución: puedes pedir que se aclare o se corrija."
+    }
+  },
+  "media": {
+    "camera": "Cámara",
+    "microphone": "Micrófono",
+    "starting": "Preparando…",
+    "cameraOn": "Cámara activa",
+    "microphoneOn": "Micrófono activo",
+    "cameraUnavailable": "Cámara no disponible",
+    "microphoneUnavailable": "Micrófono no disponible",
+    "faces": "{count, plural, =0 {No vemos tu rostro} one {Te vemos bien} other {Se ven # rostros}}",
+    "noFaceHint": "Acomódate frente a la cámara, con la luz de frente.",
+    "sound": "Hay sonido",
+    "quiet": "Sin sonido",
+    "levelLabel": "Nivel del micrófono",
+    "previewLabel": "Vista previa de tu cámara",
+    "showPreview": "Ver mi cámara",
+    "hidePreview": "Ocultar",
+    "privacy": "La imagen y el sonido no salen de tu equipo: solo se registra, con la hora, si se ve un rostro, ninguno o varios, y si hubo sonido.",
+    "cameraErrorTitle": "No pudimos usar la cámara",
+    "microphoneErrorTitle": "No pudimos usar el micrófono",
+    "withoutCamera": "Puedes presentar sin cámara: no usarla no genera ninguna señal.",
+    "withoutMicrophone": "Puedes presentar sin micrófono: no usarlo no genera ninguna señal.",
+    "inExam": "Puedes seguir presentando; quedó registrado que no estuvo disponible.",
+    "errors": {
+      "denied": "El navegador no dio permiso. Para usarlo, permite el acceso desde el ícono del candado de la barra de direcciones y vuelve a marcar la casilla.",
+      "notFound": "No encontramos ese dispositivo en este equipo.",
+      "busy": "Otra aplicación lo está usando. Ciérrala y vuelve a intentarlo.",
+      "unsupported": "Este navegador no permite usarlo.",
+      "model": "No pudimos cargar el detector de rostros. Revisa la conexión y vuelve a intentarlo.",
+      "disconnected": "Se desconectó mientras la usábamos. Revisa la conexión y vuelve a marcar la casilla."
     }
   }
 }

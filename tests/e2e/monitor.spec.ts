@@ -46,7 +46,8 @@ test("los eventos simulados aparecen en vivo en el monitoreo del docente", async
   await student.getByRole("button", { name: "Salió de la pestaña del examen" }).click();
 
   // Sin recargar, el monitoreo los muestra (consulta cada 5 s).
-  await expect(row).toContainText("Cámara 1", { timeout: 20_000 });
+  // La cámara del navegador de pruebas no muestra un rostro: puede sumar sus propios eventos.
+  await expect(row).toContainText(/Cámara \d/, { timeout: 20_000 });
   await row.getByRole("button", { name: /Ver eventos de Mateo/ }).click();
   const events = teacher.getByTestId("monitor-events");
   await expect(events).toContainText("Más de un rostro en la cámara");

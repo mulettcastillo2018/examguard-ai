@@ -22,7 +22,14 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"], channel: process.env.CI ? undefined : "msedge" },
+      use: {
+        ...devices["Desktop Chrome"],
+        channel: process.env.CI ? undefined : "msedge",
+        // Cámara y micrófono simulados por el navegador (un patrón sin rostro y un tono),
+        // con el permiso ya concedido: las pruebas no dependen del equipo.
+        permissions: ["camera", "microphone"],
+        launchOptions: { args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] },
+      },
     },
   ],
   webServer: {

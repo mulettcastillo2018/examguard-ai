@@ -313,8 +313,8 @@ async function main() {
       endsAt: new Date(now + 30 * 24 * 60 * 60 * 1000),
       durationMinutes: 20,
       maxAttempts: 2,
-      proctoringConfig: { camera: "requested", microphone: "off", fullscreen: "requested" },
-      // Con el simulador, la demo muestra todo el flujo de supervisión sin cámara real.
+      proctoringConfig: { camera: "requested", microphone: "requested", fullscreen: "requested" },
+      // Con el simulador, la demo muestra todo el flujo de supervisión aunque no haya cámara.
       simulationEnabled: true,
       publishedAt: new Date(now),
       questions: { create: copies(mathBank) },

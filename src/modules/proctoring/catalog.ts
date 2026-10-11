@@ -31,6 +31,7 @@ export const EVENT_CATALOG = {
   FACE_NOT_VISIBLE: { category: "VISION", severity: "MEDIUM", origin: "client", requires: "camera" },
   FACE_OUT_OF_FRAME: { category: "VISION", severity: "LOW", origin: "client", requires: "camera" },
   MULTIPLE_FACES: { category: "VISION", severity: "HIGH", origin: "client", requires: "camera" },
+  CAMERA_DISCONNECTED: { category: "VISION", severity: "LOW", origin: "client", requires: "camera" },
   AUDIO_ACTIVITY: { category: "AUDIO", severity: "LOW", origin: "client", requires: "microphone" },
   MICROPHONE_DISCONNECTED: { category: "AUDIO", severity: "LOW", origin: "client", requires: "microphone" },
 } as const satisfies Record<string, EventDefinition>;
