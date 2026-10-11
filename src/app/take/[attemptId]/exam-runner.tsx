@@ -228,6 +228,9 @@ export function ExamRunner({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  // La entrega apaga cámara y micrófono; si falla y el estudiante sigue presentando, vuelven.
+  const closeMedia = useRef<(() => void) | null>(null);
+  const [mediaRun, setMediaRun] = useState(0);
 
   const offset = useRef(0);
   const deadline = useRef(new Date(deadlineAt).getTime());
@@ -443,9 +446,6 @@ export function ExamRunner({
     return startDetectors({ doc: document, win: window }, (event) => events.push(event), { fullscreen: supervision.fullscreen });
   }, [supervising, supervision.fullscreen, events]);
   const pushMediaEvent = useCallback((event: MediaEvent) => events.push({ ...event, clientEventId: crypto.randomUUID() }), [events]);
-  const closeMedia = useRef<(() => void) | null>(null);
-  // Si la entrega falla y el estudiante sigue presentando, la cámara y el micrófono vuelven.
-  const [mediaRun, setMediaRun] = useState(0);
 
   useEffect(() => {
     const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
