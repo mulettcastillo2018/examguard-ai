@@ -20,17 +20,24 @@ COPY . .
 # El prebuild copia el WASM de MediaPipe a public/mediapipe.
 RUN npx prisma generate && NEXT_OUTPUT=standalone npm run build
 
+# La CLI de Prisma para "migrate deploy" al arrancar, con sus dependencias (la salida
+# standalone solo trae lo que usa el servidor).
+FROM base AS prisma-cli
+WORKDIR /opt/prisma-cli
+RUN npm init -y > /dev/null && npm install --omit=dev --no-audit --no-fund prisma@6.19.3 && npm cache clean --force
+
 FROM base AS runner
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
 RUN groupadd --system app && useradd --system --gid app app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
-# Para "prisma migrate deploy" al arrancar: el esquema, las migraciones y la CLI.
-COPY --from=build --chown=app:app /app/prisma ./prisma
-COPY --from=build --chown=app:app /app/node_modules/prisma ./node_modules/prisma
+# El cliente de Prisma generado (con su motor) para el servidor, y para las migraciones al
+# arrancar, el esquema, las migraciones y la CLI.
 COPY --from=build --chown=app:app /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=build --chown=app:app /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build --chown=app:app /app/prisma ./prisma
+COPY --from=prisma-cli --chown=app:app /opt/prisma-cli /opt/prisma-cli
 COPY --chmod=755 docker/entrypoint.sh /entrypoint.sh
 USER app
 EXPOSE 3000

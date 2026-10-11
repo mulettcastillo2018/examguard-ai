@@ -39,13 +39,13 @@ test("la rectora entra a la administración y ve usuarios, cursos y auditoría",
   await expect(page).toHaveURL(/\/admin$/);
   await expect(page.getByRole("heading", { name: "Panel de la institución" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Usuarios" }).click();
+  await page.getByRole("link", { name: "Usuarios", exact: true }).click();
   await expect(page.getByRole("cell", { name: "Carlos Mejía", exact: true })).toBeVisible();
 
-  await page.getByRole("link", { name: "Cursos" }).click();
+  await page.getByRole("link", { name: "Cursos", exact: true }).click();
   await expect(page.getByRole("cell", { name: "Matemáticas 11A" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Auditoría" }).click();
+  await page.getByRole("link", { name: "Auditoría", exact: true }).click();
   await expect(page.getByRole("cell", { name: "Inició sesión" }).first()).toBeVisible();
 });
 

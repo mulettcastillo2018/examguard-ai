@@ -134,6 +134,7 @@ jobs:
           grep -qi "content-security-policy: default-src 'self'" headers.txt
           grep -qi "permissions-policy: camera=(self), microphone=(self)" headers.txt
 
+      # Los registros de los jobs no son públicos; las anotaciones sí.
       - name: Registro del contenedor si algo falla
         if: failure()
-        run: docker logs examguard
+        run: docker logs examguard 2>&1 | tail -40 | sed 's/^/::error title=Contenedor::/' 
