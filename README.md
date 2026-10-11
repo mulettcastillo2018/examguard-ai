@@ -16,7 +16,7 @@ En construcción por fases (ver [roadmap](docs/ANALISIS.md#13-roadmap-ajustado))
 - **Fase 5 — Agentes y reglas:** agentes de dominio, motor de reglas con umbrales por institución, agente de riesgo, señales con explicación factual y resumen para quien revisa (Claude, con barreras de lenguaje y plantilla de respaldo).
 - **Fase 6 — Revisión humana:** cola de sesiones por revisar, revisión con línea de tiempo filtrable (cada evento marca la señal que lo cita), decisión con observaciones y auditoría, y "Mis datos de supervisión" para el estudiante.
 - **Fase 7 — Cámara y audio:** detección de rostros con MediaPipe y nivel del micrófono, en el navegador (la imagen y el sonido no salen del equipo); prueba de los dispositivos antes de empezar, indicadores durante el examen y autorización del acudiente para los menores, registrada por la administración.
-- **Sigue:** producción (Fase 8).
+- **Fase 8 — Producción:** política de contenido con nonce y cabeceras de seguridad, límites de uso en la base, borrado automático de la evidencia según la retención, tarea diaria, métricas de supervisión para la administración, imagen de Docker validada en CI y modo demostración para la demo pública ([despliegue](docs/DESPLIEGUE.md)).
 
 ## Stack
 
@@ -26,7 +26,10 @@ En construcción por fases (ver [roadmap](docs/ANALISIS.md#13-roadmap-ajustado))
 | Interfaz | Tailwind CSS 4, shadcn/ui (Radix), lucide, next-intl (español, preparado para más idiomas) |
 | Datos | PostgreSQL (Neon), Prisma |
 | Autenticación | Better Auth (correo y contraseña, sin registro público), roles ADMIN / TEACHER / STUDENT |
+| Supervisión | MediaPipe (detección de rostros en el navegador), Web Audio (nivel de sonido) |
+| IA | Claude (API de Anthropic) para el resumen de quien revisa, con barreras y plantilla de respaldo |
 | Calidad | Vitest (unitarias e integración), Playwright (E2E), ESLint, GitHub Actions |
+| Producción | Vercel (aplicación y tarea diaria) con Neon, o Docker en un servidor propio |
 
 ## Correr en local
 
@@ -40,6 +43,8 @@ npm run db:seed           # institución de demostración con datos ficticios
 npm run dev               # http://localhost:3000
 ```
 
+Con Docker: `docker compose up --build` (aplicación y PostgreSQL) y `docker compose run --rm seed` para los datos de demostración.
+
 Cuentas de demostración (contraseña: la de `SEED_PASSWORD`):
 
 | Rol | Correo |
@@ -47,6 +52,14 @@ Cuentas de demostración (contraseña: la de `SEED_PASSWORD`):
 | Rectora (administración) | `rectoria@losandes.test` |
 | Docentes | `cmejia@losandes.test`, `dospina@losandes.test` |
 | Estudiantes | `mcardenas@losandes.test`, `vrios@losandes.test` (menor, con autorización del acudiente), `sgomez@losandes.test` (menor, sin ella), … |
+
+## Seguridad y privacidad
+
+- La cámara y el micrófono se procesan en el navegador: al servidor solo llegan hechos con su hora (cuántos rostros, si hubo sonido), nunca imágenes ni audio.
+- Política de contenido con nonce (`connect-src 'self'`: nada sale a otros dominios, ni la telemetría de las librerías) y `Permissions-Policy` que limita cámara y micrófono al propio sitio.
+- Permisos por rol y alcance en cada servicio; auditoría de cada decisión; límites de uso en la base.
+- La evidencia se borra sola al cumplirse la retención de la institución; la nota y la decisión de la revisión se conservan.
+- Menores de edad: cámara y micrófono solo con la autorización del acudiente registrada por la institución.
 
 ## Pruebas
 
@@ -71,4 +84,5 @@ Este proyecto se desarrolla en una red que bloquea algunos paquetes con binarios
 
 - [Análisis y propuesta técnica](docs/ANALISIS.md): revisión crítica de la especificación, arquitectura, modelo de datos, agentes, privacidad, riesgos y roadmap.
 - [Decisiones técnicas](docs/DECISIONES.md).
+- [Despliegue](docs/DESPLIEGUE.md): Neon, Vercel, modo demostración y Docker.
 - [Especificación original](docs/especificacion-original.md).
