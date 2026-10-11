@@ -86,6 +86,8 @@ export default async function AttemptDetailPage({ params }: PageProps<"/teacher/
           <CardContent className="grid gap-4 text-sm">
             {!session ? (
               <p className="text-muted-foreground">{tReview("noSession")}</p>
+            ) : session.evidencePurgedAt ? (
+              <p className="text-muted-foreground">{tReview("purged", { date: format.dateTime(session.evidencePurgedAt, { dateStyle: "medium" }) })}</p>
             ) : signals.length === 0 ? (
               <p className="text-muted-foreground">{tReview("noSignals")}</p>
             ) : (

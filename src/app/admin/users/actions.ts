@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { formFlag, formText, runAction, type ActionResult } from "@/lib/action";
+import { enforceRateLimit, LIMITS } from "@/lib/rate-limit";
 import { requireActor } from "@/modules/auth/session";
 import { createUser, importUsers, resetUserPassword, updateUser, type ImportResultRow } from "@/modules/users/users";
 
@@ -53,6 +54,7 @@ export async function importUsersAction(csvText: string): Promise<ActionResult<I
   return runAction(async () => {
     const actor = await requireActor({ permission: "users:manage" });
     if (csvText.length > 200_000) return { ok: false as const, error: "tooManyRows" as const, missing: [] };
+    await enforceRateLimit(`user-import:${actor.id}`, LIMITS.userImport);
     const result = await importUsers(actor, csvText);
     revalidatePath("/admin/users");
     return result;

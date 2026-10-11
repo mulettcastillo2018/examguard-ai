@@ -46,6 +46,15 @@ export class ConflictError extends AppError {
   }
 }
 
+export class TooManyRequestsError extends AppError {
+  constructor(
+    message = "Demasiadas solicitudes seguidas. Espera un momento y vuelve a intentarlo.",
+    readonly retryAfterSec = 60,
+  ) {
+    super(message, 429, "rateLimited");
+  }
+}
+
 /** Convierte cualquier error en un cuerpo de respuesta seguro para el cliente. */
 export function toErrorResponse(error: unknown): { status: number; body: { error: string; code: string } } {
   if (error instanceof AppError) {

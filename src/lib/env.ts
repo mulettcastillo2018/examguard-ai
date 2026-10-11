@@ -17,6 +17,14 @@ const serverEnvSchema = z.object({
   // Proveedor de IA (Fase 5). Sin llave (o vacía) se usa la plantilla factual.
   ANTHROPIC_API_KEY: z.preprocess((value) => (value === "" ? undefined : value), z.string().min(1).optional()),
   ANTHROPIC_MODEL: z.string().min(1).default("claude-opus-5-5"),
+  // Secreto de la tarea programada diaria (Vercel lo envía como "Authorization: Bearer ...").
+  // Sin él, la ruta /api/cron/daily no se puede llamar.
+  CRON_SECRET: z.preprocess((value) => (value === "" ? undefined : value), z.string().min(16).optional()),
+  // Modo demostración (la demo pública): las cuentas de ejemplo aparecen al iniciar sesión con
+  // esta contraseña, no se pueden cambiar sus contraseñas ni su estado, y la tarea diaria
+  // restablece los datos de ejemplo. DEMO_PASSWORD es pública: nunca la de una cuenta real.
+  DEMO_MODE: z.preprocess((value) => value === "1" || value === "true", z.boolean()),
+  DEMO_PASSWORD: z.preprocess((value) => (value === "" ? undefined : value), z.string().min(10).optional()),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

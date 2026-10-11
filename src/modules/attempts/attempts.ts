@@ -103,11 +103,16 @@ async function finalizeAttempt(attempt: ExamAttempt, now: Date, auto: boolean, a
 }
 
 /** Cierra los intentos vencidos (por tiempo) de un examen o de un estudiante. */
+/** Entrega los intentos cuyo tiempo venció (con el margen de gracia); devuelve cuántos. */
 export async function finalizeExpiredAttempts(where: { examId?: string; studentId?: string }, now = new Date()) {
-  const expired = await prisma.examAttempt.findMany({ where: { ...where, status: "IN_PROGRESS" } });
+  const expired = await prisma.examAttempt.findMany({ where: { ...where, status: "IN_PROGRESS", deadlineAt: { lt: now } } });
+  let finalized = 0;
   for (const attempt of expired) {
-    if (isPastDeadline(attempt.deadlineAt, now)) await finalizeAttempt(attempt, now, true, null);
+    if (!isPastDeadline(attempt.deadlineAt, now)) continue;
+    await finalizeAttempt(attempt, now, true, null);
+    finalized += 1;
   }
+  return finalized;
 }
 
 // ---------- Lista y antesala ----------

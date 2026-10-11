@@ -70,6 +70,13 @@ export async function ReviewQueue({ data, basePath }: { data: Awaited<ReturnType
                       · {t("reviewedBy", { name: row.review.reviewer.name, date: format.dateTime(row.review.reviewedAt, { dateStyle: "medium" }) })}
                     </span>
                   ) : null}
+                  {row.evidencePurgedAt ? (
+                    <span>· {t("evidencePurged")}</span>
+                  ) : row.evidenceExpiresAt ? (
+                    <span className={cn(row.evidenceUrgent && "font-medium text-amber-700")}>
+                      · {t("evidenceUntil", { date: format.dateTime(row.evidenceExpiresAt, { dateStyle: "medium" }) })}
+                    </span>
+                  ) : null}
                 </p>
               </div>
               <Link

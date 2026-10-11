@@ -47,7 +47,17 @@ export async function SessionReviewView({ data, basePath, summarySlot }: { data:
       consent ? t("info.consentValue", { version: consent.textVersion, grantor: t(`info.grantor.${consent.grantedBy ?? "STUDENT"}`) }) : t("info.noConsent"),
     ],
     [t("info.deviceSwitches"), attempt.clientSwitches],
+    ...(session.evidencePurgedAt
+      ? ([[t("info.evidence"), t("info.evidencePurged", { date: dateTime(session.evidencePurgedAt) })]] as [string, ReactNode][])
+      : session.evidenceExpiresAt
+        ? ([[t("info.evidence"), t("info.evidenceUntil", { date: format.dateTime(session.evidenceExpiresAt, { dateStyle: "medium" }) })]] as [string, ReactNode][])
+        : []),
   ];
+  const purgedNotice = session.evidencePurgedAt ? (
+    <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground" data-testid="evidence-purged">
+      {t("evidencePurged", { date: format.dateTime(session.evidencePurgedAt, { dateStyle: "medium" }), days: session.retentionDays })}
+    </p>
+  ) : null;
 
   return (
     <>
@@ -91,7 +101,8 @@ export async function SessionReviewView({ data, basePath, summarySlot }: { data:
               <CardDescription>{tReview("disclaimer")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 text-sm">
-              {data.signals.length ? <SignalList signals={data.signals} /> : <p className="text-muted-foreground">{t("signals.none")}</p>}
+              {purgedNotice ??
+                (data.signals.length ? <SignalList signals={data.signals} /> : <p className="text-muted-foreground">{t("signals.none")}</p>)}
               {data.signals.length ? (
                 <div className="grid gap-2 border-t pt-4">
                   {summarySlot ?? (
@@ -111,73 +122,77 @@ export async function SessionReviewView({ data, basePath, summarySlot }: { data:
               <CardDescription>{t("timeline.description")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <form method="get" className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="f-category">{t("timeline.category")}</Label>
-                  <NativeSelect id="f-category" name="category" defaultValue={data.filters.category ?? ""}>
-                    <option value="">{t("timeline.all")}</option>
-                    {CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {tProctoring(`categories.${category}`)}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="f-severity">{t("timeline.severity")}</Label>
-                  <NativeSelect id="f-severity" name="severity" defaultValue={data.filters.severity ?? ""}>
-                    <option value="">{t("timeline.all")}</option>
-                    {SEVERITIES.map((severity) => (
-                      <option key={severity} value={severity}>
-                        {tProctoring(`severity.${severity}`)}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="f-source">{t("timeline.source")}</Label>
-                  <NativeSelect id="f-source" name="source" defaultValue={data.filters.source ?? ""}>
-                    <option value="">{t("timeline.all")}</option>
-                    {SOURCES.map((source) => (
-                      <option key={source} value={source}>
-                        {tProctoring(`source.${source}`)}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-                <div className="flex gap-2">
-                  <Button type="submit" variant="secondary">
-                    {t("timeline.apply")}
-                  </Button>
-                  {filtered ? (
-                    <Link href={`${basePath}/${session.id}`} className="inline-flex h-9 items-center px-2 text-sm text-muted-foreground underline-offset-4 hover:underline">
-                      {t("timeline.clear")}
-                    </Link>
-                  ) : null}
-                </div>
-              </form>
+              {purgedNotice ?? (
+                <>
+                  <form method="get" className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="f-category">{t("timeline.category")}</Label>
+                      <NativeSelect id="f-category" name="category" defaultValue={data.filters.category ?? ""}>
+                        <option value="">{t("timeline.all")}</option>
+                        {CATEGORIES.map((category) => (
+                          <option key={category} value={category}>
+                            {tProctoring(`categories.${category}`)}
+                          </option>
+                        ))}
+                      </NativeSelect>
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="f-severity">{t("timeline.severity")}</Label>
+                      <NativeSelect id="f-severity" name="severity" defaultValue={data.filters.severity ?? ""}>
+                        <option value="">{t("timeline.all")}</option>
+                        {SEVERITIES.map((severity) => (
+                          <option key={severity} value={severity}>
+                            {tProctoring(`severity.${severity}`)}
+                          </option>
+                        ))}
+                      </NativeSelect>
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="f-source">{t("timeline.source")}</Label>
+                      <NativeSelect id="f-source" name="source" defaultValue={data.filters.source ?? ""}>
+                        <option value="">{t("timeline.all")}</option>
+                        {SOURCES.map((source) => (
+                          <option key={source} value={source}>
+                            {tProctoring(`source.${source}`)}
+                          </option>
+                        ))}
+                      </NativeSelect>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="submit" variant="secondary">
+                        {t("timeline.apply")}
+                      </Button>
+                      {filtered ? (
+                        <Link href={`${basePath}/${session.id}`} className="inline-flex h-9 items-center px-2 text-sm text-muted-foreground underline-offset-4 hover:underline">
+                          {t("timeline.clear")}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </form>
 
-              <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span className="tabular-nums">{t("timeline.count", { shown: data.timeline.length, total: totalEvents })}</span>
-                {CATEGORIES.filter((category) => data.totals[category]).map((category) => (
-                  <span key={category} className="tabular-nums">
-                    {tProctoring(`categories.${category}`)} {data.totals[category]}
-                  </span>
-                ))}
-              </p>
+                  <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="tabular-nums">{t("timeline.count", { shown: data.timeline.length, total: totalEvents })}</span>
+                    {CATEGORIES.filter((category) => data.totals[category]).map((category) => (
+                      <span key={category} className="tabular-nums">
+                        {tProctoring(`categories.${category}`)} {data.totals[category]}
+                      </span>
+                    ))}
+                  </p>
 
-              {data.timeline.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("timeline.empty")}</p>
-              ) : (
-                <ol className="grid gap-3 border-l pl-4" data-testid="review-timeline">
-                  {data.timeline.map((event) => (
-                    <EventItem
-                      key={event.id}
-                      citedBy={event.citedBy}
-                      event={{ ...event, occurredAt: event.occurredAt.toISOString() } satisfies EventView}
-                    />
-                  ))}
-                </ol>
+                  {data.timeline.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("timeline.empty")}</p>
+                  ) : (
+                    <ol className="grid gap-3 border-l pl-4" data-testid="review-timeline">
+                      {data.timeline.map((event) => (
+                        <EventItem
+                          key={event.id}
+                          citedBy={event.citedBy}
+                          event={{ ...event, occurredAt: event.occurredAt.toISOString() } satisfies EventView}
+                        />
+                      ))}
+                    </ol>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

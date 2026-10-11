@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { jsonPost } from "@/lib/api";
 import { ValidationError } from "@/lib/errors";
+import { enforceRateLimit, LIMITS } from "@/lib/rate-limit";
 import { saveAnswer } from "@/modules/attempts/attempts";
 import { requireActor } from "@/modules/auth/session";
 
@@ -15,6 +16,7 @@ const bodySchema = z.object({
 // que el navegador corrija su reloj.
 export const POST = jsonPost<{ id: string }>(async (body, { id }) => {
   const actor = await requireActor({ permission: "exams:take" });
+  await enforceRateLimit(`answers:${actor.id}`, LIMITS.answers);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) throw new ValidationError("Solicitud inválida.");
   const saved = await saveAnswer(actor, id, parsed.data);

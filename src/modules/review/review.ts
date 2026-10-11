@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { labelSignals } from "@/modules/agents/labels";
 import { recordAudit } from "@/modules/audit";
+import { DEFAULT_RETENTION_DAYS, evidenceExpiresAt } from "@/modules/maintenance/retention";
 import type { CurrentUser } from "@/modules/auth/session";
 import type { EventCategory } from "@/modules/proctoring/catalog";
 import { assertCan, assertRole } from "@/modules/rbac";
@@ -41,12 +42,12 @@ function reviewScope(actor: CurrentUser): Prisma.ProctoringSessionWhereInput {
 // ---------- Cola de revisión ----------
 
 /** Sesiones por revisar (o ya revisadas) del alcance de quien pregunta, las más recientes primero. */
-export async function listReviewQueue(actor: CurrentUser, filter: QueueFilter = "RECOMMENDED") {
+export async function listReviewQueue(actor: CurrentUser, filter: QueueFilter = "RECOMMENDED", now = new Date()) {
   const where: Prisma.ProctoringSessionWhereInput = {
     ...reviewScope(actor),
     ...(filter === "ALL" ? { reviewStatus: { in: ["RECOMMENDED", "REVIEWED"] } } : { reviewStatus: filter }),
   };
-  const [sessions, counts] = await Promise.all([
+  const [sessions, counts, policy] = await Promise.all([
     prisma.proctoringSession.findMany({
       where,
       orderBy: { startedAt: "desc" },
@@ -56,6 +57,7 @@ export async function listReviewQueue(actor: CurrentUser, filter: QueueFilter = 
         reviewStatus: true,
         startedAt: true,
         eventCount: true,
+        evidencePurgedAt: true,
         signals: { select: { severity: true } },
         review: { select: { outcome: true, reviewedAt: true, reviewer: { select: { name: true } } } },
         attempt: {
@@ -71,22 +73,32 @@ export async function listReviewQueue(actor: CurrentUser, filter: QueueFilter = 
       },
     }),
     prisma.proctoringSession.groupBy({ by: ["reviewStatus"], where: reviewScope(actor), _count: { _all: true } }),
+    prisma.policy.findUnique({ where: { institutionId: actor.institutionId }, select: { evidenceRetentionDays: true } }),
   ]);
+  const retentionDays = policy?.evidenceRetentionDays ?? DEFAULT_RETENTION_DAYS;
 
   const count = (status: "RECOMMENDED" | "REVIEWED") => counts.find((row) => row.reviewStatus === status)?._count._all ?? 0;
   return {
     filter,
     counts: { recommended: count("RECOMMENDED"), reviewed: count("REVIEWED") },
-    rows: sessions.map((session) => ({
-      sessionId: session.id,
-      reviewStatus: session.reviewStatus,
-      startedAt: session.startedAt,
-      eventCount: session.eventCount,
-      signalCount: session.signals.length,
-      highestSeverity: highestSeverity(session.signals.map((signal) => signal.severity)),
-      review: session.review,
-      attempt: session.attempt,
-    })),
+    rows: sessions.map((session) => {
+      const expiresAt = session.attempt.submittedAt ? evidenceExpiresAt(session.attempt.submittedAt, retentionDays) : null;
+      return {
+        sessionId: session.id,
+        reviewStatus: session.reviewStatus,
+        startedAt: session.startedAt,
+        eventCount: session.eventCount,
+        signalCount: session.signals.length,
+        highestSeverity: highestSeverity(session.signals.map((signal) => signal.severity)),
+        review: session.review,
+        attempt: session.attempt,
+        // Hasta cuándo hay evidencia para revisar (luego la retención la borra); urgente si
+        // quedan menos de 7 días y nadie ha revisado.
+        evidencePurgedAt: session.evidencePurgedAt,
+        evidenceExpiresAt: session.evidencePurgedAt ? null : expiresAt,
+        evidenceUrgent: Boolean(!session.evidencePurgedAt && !session.review && expiresAt && expiresAt.getTime() - now.getTime() < 7 * 86_400_000),
+      };
+    }),
   };
 }
 
@@ -131,7 +143,7 @@ async function findReviewableSession(actor: CurrentUser, sessionId: string) {
 /** Todo lo que quien revisa necesita para decidir, con la línea de tiempo filtrada. */
 export async function getSessionReview(actor: CurrentUser, sessionId: string, filters: TimelineFilters = {}, now = new Date()) {
   const session = await findReviewableSession(actor, sessionId);
-  const [events, byCategory, history] = await Promise.all([
+  const [events, byCategory, history, policy] = await Promise.all([
     prisma.proctoringEvent.findMany({
       where: { sessionId, category: filters.category, severity: filters.severity, source: filters.source },
       orderBy: { occurredAt: "asc" },
@@ -144,7 +156,9 @@ export async function getSessionReview(actor: CurrentUser, sessionId: string, fi
       take: 20,
       select: { id: true, createdAt: true, metadata: true, actor: { select: { name: true } } },
     }),
+    prisma.policy.findUnique({ where: { institutionId: actor.institutionId }, select: { evidenceRetentionDays: true } }),
   ]);
+  const retentionDays = policy?.evidenceRetentionDays ?? DEFAULT_RETENTION_DAYS;
 
   const signals = labelSignals(session.signals);
   // Qué señales citan cada evento, para marcarlo en la línea de tiempo.
@@ -170,6 +184,10 @@ export async function getSessionReview(actor: CurrentUser, sessionId: string, fi
       eventCount: session.eventCount,
       riskSummary: session.riskSummary,
       riskSummaryProvider: session.riskSummaryProvider,
+      // Retención: cuándo se borró la evidencia, o hasta cuándo se conserva.
+      retentionDays,
+      evidencePurgedAt: session.evidencePurgedAt,
+      evidenceExpiresAt: endedAt && !session.evidencePurgedAt ? evidenceExpiresAt(endedAt, retentionDays) : null,
     },
     attempt: {
       id: attempt.id,
@@ -250,7 +268,7 @@ export async function listMySupervision(actor: CurrentUser) {
         startedAt: true,
         consent: { select: { camera: true, microphone: true } },
         exam: { select: { title: true, course: { select: { name: true } } } },
-        proctoring: { select: { eventCount: true, reviewStatus: true } },
+        proctoring: { select: { eventCount: true, reviewStatus: true, evidencePurgedAt: true } },
       },
     }),
     prisma.policy.findUnique({ where: { institutionId: actor.institutionId }, select: { evidenceRetentionDays: true } }),
@@ -264,6 +282,7 @@ export async function listMySupervision(actor: CurrentUser) {
       exam: attempt.exam,
       consent: attempt.consent,
       eventCount: attempt.proctoring?.eventCount ?? 0,
+      evidencePurgedAt: attempt.proctoring?.evidencePurgedAt ?? null,
       reviewState: studentState(attempt.proctoring?.reviewStatus ?? "NOT_REQUIRED"),
     })),
   };
@@ -289,6 +308,7 @@ export async function getMySupervisionSession(actor: CurrentUser, attemptId: str
           cameraEnabled: true,
           microphoneEnabled: true,
           reviewStatus: true,
+          evidencePurgedAt: true,
           events: { orderBy: { occurredAt: "asc" }, select: eventSelect },
         },
       },

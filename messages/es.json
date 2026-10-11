@@ -32,7 +32,18 @@
       "submitting": "Entrando…",
       "invalid": "Correo o contraseña incorrectos, o la cuenta está desactivada.",
       "tooManyAttempts": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
-      "noSignUp": "No hay registro público: las cuentas las crea la administración de tu institución."
+      "noSignUp": "No hay registro público: las cuentas las crea la administración de tu institución.",
+      "demo": {
+        "title": "Cuentas de demostración",
+        "description": "Datos ficticios: entra con un clic como cualquiera de estos perfiles. Los datos de ejemplo se restablecen cada noche.",
+        "password": "Contraseña de todas:",
+        "accounts": {
+          "admin": "Rectora (administración)",
+          "teacher": "Docente",
+          "student": "Estudiante",
+          "minor": "Estudiante menor, con autorización del acudiente"
+        }
+      }
     },
     "password": {
       "title": "Cambia tu contraseña",
@@ -84,7 +95,23 @@
       "minors": "Menores de edad",
       "courses": "Cursos",
       "recentActivity": "Actividad reciente",
-      "seeAudit": "Ver toda la auditoría"
+      "seeAudit": "Ver toda la auditoría",
+      "supervision": {
+        "title": "Supervisión · últimos {days} días",
+        "retention": "La evidencia de cada sesión se conserva {days, plural, one {# día} other {# días}} después de la entrega; luego se borra sola.",
+        "finished": "Intentos entregados",
+        "camera": "Con cámara",
+        "microphone": "Con micrófono",
+        "pending": "Revisiones pendientes",
+        "noIrregularity": "Sin irregularidad",
+        "needsInvestigation": "Requieren investigación",
+        "signals": "Señales por tipo",
+        "noSignals": "Sin señales en el periodo.",
+        "urgent": "{count, plural, one {# sesión por revisar pierde} other {# sesiones por revisar pierden}} su evidencia en menos de 7 días.",
+        "urgentLink": "Ir a la revisión",
+        "minorsWithoutConsent": "{count, plural, one {# estudiante menor no tiene} other {# estudiantes menores no tienen}} autorización del acudiente: presentan sin cámara ni micrófono.",
+        "minorsLink": "Ver usuarios"
+      }
     },
     "users": {
       "title": "Usuarios",
@@ -312,7 +339,8 @@
       "EXAM_CLOSED": "Cerró un examen",
       "SESSION_REVIEWED": "Revisó una sesión de supervisión",
       "GUARDIAN_CONSENT_RECORDED": "Autorización del acudiente registrada",
-      "GUARDIAN_CONSENT_REVOKED": "Autorización del acudiente revocada"
+      "GUARDIAN_CONSENT_REVOKED": "Autorización del acudiente revocada",
+      "EVIDENCE_PURGED": "Evidencia de supervisión borrada por la retención"
     },
     "entities": {
       "Session": "Sesión",
@@ -323,7 +351,8 @@
       "Exam": "Examen",
       "ExamAttempt": "Intento de examen",
       "ProctoringSession": "Sesión de supervisión",
-      "GuardianConsent": "Autorización del acudiente"
+      "GuardianConsent": "Autorización del acudiente",
+      "Policy": "Política de la institución"
     }
   },
   "teacher": {
@@ -1003,6 +1032,16 @@
     "outcome": {
       "NO_IRREGULARITY": "Sin irregularidad observada",
       "NEEDS_INVESTIGATION": "Requiere investigación adicional"
+    },
+    "purged": "Los eventos y las señales de este intento se borraron el {date} por la política de retención.",
+    "signalTypes": {
+      "LOW_ACTIVITY": "Inactividad",
+      "FOCUS_CHANGES": "Cambios de pestaña o foco",
+      "FULLSCREEN_EXITS": "Salidas de pantalla completa",
+      "FACE_UNAVAILABLE": "Sin rostro visible",
+      "MULTIPLE_FACES": "Más de un rostro",
+      "AUDIO_ACTIVITY": "Sonido",
+      "CONNECTION_GAPS": "Desconexiones"
     }
   },
   "reviews": {
@@ -1025,7 +1064,9 @@
     "reviewedBy": "{name}, {date}",
     "inProgress": "Presentando",
     "open": "Revisar",
-    "view": "Ver revisión"
+    "view": "Ver revisión",
+    "evidenceUntil": "Evidencia hasta el {date}",
+    "evidencePurged": "Evidencia borrada"
   },
   "sessionReview": {
     "title": "Revisión de {name}",
@@ -1053,7 +1094,10 @@
         "GUARDIAN": "su acudiente"
       },
       "deviceSwitches": "Cambios de dispositivo",
-      "minor": "Menor de edad"
+      "minor": "Menor de edad",
+      "evidence": "Evidencia",
+      "evidenceUntil": "Se conserva hasta el {date}",
+      "evidencePurged": "Borrada el {date}"
     },
     "signals": {
       "title": "Señales",
@@ -1098,7 +1142,8 @@
       "entry": "{name} marcó «{outcome}»",
       "changed": "{name} cambió de «{previous}» a «{outcome}»",
       "empty": "Sin revisiones todavía."
-    }
+    },
+    "evidencePurged": "Los eventos, las señales y el resumen de esta sesión se borraron el {date}, al cumplirse la retención de la institución ({days, plural, one {# día} other {# días}}). La decisión de la revisión se conserva."
   },
   "myData": {
     "title": "Mis datos de supervisión",
@@ -1126,8 +1171,10 @@
       "events": "Eventos registrados",
       "noEvents": "No se registró ningún evento en esta sesión.",
       "meaning": "Un evento es un hecho con su hora; ninguno, por sí solo, significa que hiciste algo indebido. Si hace falta una revisión, la hace un docente, que puede tener en cuenta explicaciones que no están en estos datos.",
-      "question": "¿Algo no corresponde a lo que pasó? Escríbele a tu docente o a la institución: puedes pedir que se aclare o se corrija."
-    }
+      "question": "¿Algo no corresponde a lo que pasó? Escríbele a tu docente o a la institución: puedes pedir que se aclare o se corrija.",
+      "purged": "Los eventos de esta sesión se borraron el {date}, como lo indica la política de retención de tu institución. Tu nota y tu consentimiento se conservan."
+    },
+    "purged": "Eventos borrados por la retención"
   },
   "media": {
     "camera": "Cámara",

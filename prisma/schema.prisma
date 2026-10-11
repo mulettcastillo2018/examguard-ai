@@ -419,6 +419,15 @@ model ConsentRecord {
   grantedAt   DateTime        @default(now())
 }
 
+// Límites de uso, en la base para que valgan entre instancias del servidor: Better Auth los
+// usa al iniciar sesión y la aplicación en sus APIs (claves con prefijo "app:").
+model RateLimit {
+  id          String @id @default(cuid())
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
 // Autorización del acudiente de un estudiante menor (Ley 1581 de 2012, art. 7): la registra
 // la administración con el soporte que la institución conserve. Sin una vigente, el menor
 // presenta sin cámara ni micrófono. Una por estudiante; registrar otra la reemplaza y
@@ -465,6 +474,8 @@ model ProctoringSession {
   // Resumen para quien revisa (se genera al abrir la revisión, a partir de las señales).
   riskSummary         String?
   riskSummaryProvider String?
+  /// Cuándo se borraron sus eventos, señales y resumen por la política de retención.
+  evidencePurgedAt    DateTime?
   riskSummaryAt       DateTime?
   analyzedAt          DateTime?
   events              ProctoringEvent[]

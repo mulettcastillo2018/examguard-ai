@@ -39,6 +39,7 @@ export const AUDIT_ACTIONS = [
   "SESSION_REVIEWED",
   "GUARDIAN_CONSENT_RECORDED",
   "GUARDIAN_CONSENT_REVOKED",
+  "EVIDENCE_PURGED",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

@@ -1,11 +1,12 @@
 import "server-only";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
 import { recordAudit } from "@/modules/audit";
+import { isDemoAccount } from "@/modules/demo/demo";
 
 // Configuración de Better Auth. La plataforma es institucional: no hay registro
 // público; los usuarios los crea el administrador (ver credentials.ts).
@@ -40,7 +41,9 @@ function createAuth() {
       updateAge: 60 * 30,
     },
     rateLimit: {
-      // Activo en producción (comportamiento por defecto de Better Auth); más estricto al iniciar sesión.
+      // Activo en producción (comportamiento por defecto de Better Auth); más estricto al iniciar
+      // sesión. En la base: en memoria, cada instancia del servidor llevaría su propia cuenta.
+      storage: "database",
       customRules: { "/sign-in/email": { window: 60, max: env.AUTH_SIGNIN_MAX_PER_MINUTE } },
     },
     databaseHooks: {
@@ -85,6 +88,14 @@ function createAuth() {
       },
     },
     hooks: {
+      // En la demo pública, las cuentas de ejemplo no cambian de contraseña (las comparten todos).
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== "/change-password") return;
+        const session = await getSessionFromCtx(ctx);
+        if (session && isDemoAccount(session.user.email)) {
+          throw new APIError("FORBIDDEN", { message: "En la demostración no se cambian las contraseñas de las cuentas de ejemplo." });
+        }
+      }),
       // Al cambiar la contraseña con éxito, se quita la obligación de cambiarla.
       after: createAuthMiddleware(async (ctx) => {
         if (ctx.path !== "/change-password") return;

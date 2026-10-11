@@ -36,7 +36,7 @@ export default async function MyDataPage() {
                 <p className="text-sm text-muted-foreground">
                   {row.exam.course.name} · {t("attempt", { number: row.number })} · <span className="tabular-nums">{format.dateTime(row.startedAt, { dateStyle: "medium", timeStyle: "short" })}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{t("events", { count: row.eventCount })}</p>
+                <p className="text-xs text-muted-foreground">{row.evidencePurgedAt ? t("purged") : t("events", { count: row.eventCount })}</p>
               </div>
               <Link
                 href={`/student/my-data/${row.attemptId}`}

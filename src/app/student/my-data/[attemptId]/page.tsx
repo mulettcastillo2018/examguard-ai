@@ -71,7 +71,11 @@ export default async function MySupervisionSessionPage({ params }: PageProps<"/s
             <CardDescription>{t("detail.meaning")}</CardDescription>
           </CardHeader>
           <CardContent>
-            {data.events.length === 0 ? (
+            {session.evidencePurgedAt ? (
+              <p className="text-sm text-muted-foreground" data-testid="my-data-purged">
+                {t("detail.purged", { date: format.dateTime(session.evidencePurgedAt, { dateStyle: "medium" }) })}
+              </p>
+            ) : data.events.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("detail.noEvents")}</p>
             ) : (
               <ol className="grid gap-3 border-l pl-4" data-testid="my-data-events">

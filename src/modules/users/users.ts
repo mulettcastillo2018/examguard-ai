@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { recordAudit } from "@/modules/audit";
 import { createCredentialUser } from "@/modules/auth/credentials";
+import { assertNotDemoAccount } from "@/modules/demo/demo";
 import type { CurrentUser } from "@/modules/auth/session";
 import { assertCan, ROLES } from "@/modules/rbac";
 import { parseUserImport, type ImportRowError } from "./csv";
@@ -119,6 +120,7 @@ export async function updateUser(actor: CurrentUser, userId: string, input: User
   assertCan(actor, "users:manage");
   const data = parseOrThrow(userUpdateSchema, input);
   const current = await findOwnUser(actor, userId);
+  assertNotDemoAccount(current.email);
 
   if (current.id === actor.id && (!data.active || data.role !== "ADMIN")) {
     throw new ForbiddenError("No puedes desactivar tu propia cuenta ni quitarte el rol de administración.");
@@ -154,6 +156,7 @@ export async function resetUserPassword(actor: CurrentUser, userId: string) {
   assertCan(actor, "users:manage");
   const user = await findOwnUser(actor, userId);
   if (user.id === actor.id) throw new ForbiddenError("Para cambiar tu propia contraseña usa la opción de tu cuenta.");
+  assertNotDemoAccount(user.email);
 
   const temporaryPassword = generateTemporaryPassword();
   const passwordHash = await hashPassword(temporaryPassword);

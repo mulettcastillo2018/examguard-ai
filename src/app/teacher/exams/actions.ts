@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { runAction, type ActionResult } from "@/lib/action";
+import { enforceRateLimit, LIMITS } from "@/lib/rate-limit";
 import { requireActor } from "@/modules/auth/session";
 import {
   addQuestionsFromBank,
@@ -171,7 +172,9 @@ export async function publishResultsAction(examId: string): Promise<ActionResult
 /** Resumen para quien revisa: el guardado o uno nuevo (Claude o la plantilla). */
 export async function generateSummaryAction(examId: string, attemptId: string, regenerate: boolean): Promise<ActionResult<{ text: string; source: string }>> {
   return runAction(async () => {
-    const summary = await getAttemptSummary(await manager(), examId, attemptId, { regenerate });
+    const actor = await manager();
+    await enforceRateLimit(`ai-summary:${actor.id}`, LIMITS.aiSummary);
+    const summary = await getAttemptSummary(actor, examId, attemptId, { regenerate });
     return { text: summary.text, source: summary.source };
   });
 }

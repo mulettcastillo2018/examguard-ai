@@ -1,7 +1,7 @@
 import "server-only";
 import { NextResponse, type NextRequest } from "next/server";
 import { getServerEnv } from "./env";
-import { ForbiddenError, toErrorResponse, ValidationError } from "./errors";
+import { ForbiddenError, toErrorResponse, TooManyRequestsError, ValidationError } from "./errors";
 import { logger } from "./logger";
 
 // Rutas de API que usa la pantalla del examen (guardado automático con reintentos, que
@@ -35,7 +35,9 @@ export function jsonPost<P>(handler: (body: unknown, params: P) => Promise<unkno
     } catch (error) {
       const { status, body } = toErrorResponse(error);
       if (status >= 500) logger.error("Error inesperado en una ruta de API", { error });
-      return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
+      const headers: Record<string, string> = { "Cache-Control": "no-store" };
+      if (error instanceof TooManyRequestsError) headers["Retry-After"] = String(error.retryAfterSec);
+      return NextResponse.json(body, { status, headers });
     }
   };
 }
@@ -49,7 +51,9 @@ export function jsonGet<P>(handler: (params: P) => Promise<unknown>) {
     } catch (error) {
       const { status, body } = toErrorResponse(error);
       if (status >= 500) logger.error("Error inesperado en una ruta de API", { error });
-      return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
+      const headers: Record<string, string> = { "Cache-Control": "no-store" };
+      if (error instanceof TooManyRequestsError) headers["Retry-After"] = String(error.retryAfterSec);
+      return NextResponse.json(body, { status, headers });
     }
   };
 }
