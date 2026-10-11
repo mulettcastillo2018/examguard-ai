@@ -2,6 +2,8 @@
 
 Plataforma de exámenes en línea para colegios y universidades, con supervisión asistida por IA.
 
+**Demo en línea:** [examguard-mulett.vercel.app](https://examguard-mulett.vercel.app/login) — entra con un clic como rectora, docente o estudiante (datos ficticios que se restablecen cada noche). Para ver la supervisión: entra como estudiante, abre el "Taller de repaso", autoriza la cámara y usa el simulador; luego, como docente, mira el monitoreo y la revisión.
+
 > **La IA no decide que un estudiante hizo trampa.** Detecta eventos (cambios de pestaña, inactividad, desconexiones), los organiza en señales con una explicación factual y recomienda revisar. La decisión siempre es de una persona.
 
 ## Estado
