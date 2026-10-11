@@ -137,17 +137,19 @@ model User {
   active             Boolean     @default(true)
   mustChangePassword Boolean     @default(true)
 
-  sessions       Session[]
-  accounts       Account[]
-  teaching       CourseTeacher[]
-  enrollments    Enrollment[]
-  auditLogs      AuditLog[]
-  questions      Question[]      @relation("QuestionOwner")
-  examsCreated   Exam[]          @relation("ExamCreator")
-  accommodations Accommodation[]
-  attempts       ExamAttempt[]
-  answersGraded  Answer[]        @relation("AnswerGrader")
-  reviews        Review[]
+  sessions                 Session[]
+  accounts                 Account[]
+  teaching                 CourseTeacher[]
+  enrollments              Enrollment[]
+  auditLogs                AuditLog[]
+  questions                Question[]        @relation("QuestionOwner")
+  examsCreated             Exam[]            @relation("ExamCreator")
+  accommodations           Accommodation[]
+  attempts                 ExamAttempt[]
+  answersGraded            Answer[]          @relation("AnswerGrader")
+  reviews                  Review[]
+  guardianConsent          GuardianConsent?  @relation("GuardianConsentStudent")
+  guardianConsentsRecorded GuardianConsent[] @relation("GuardianConsentRecorder")
 
   @@index([institutionId, role])
 }
@@ -415,6 +417,30 @@ model ConsentRecord {
   microphone  Boolean
   grantedBy   ConsentGrantor?
   grantedAt   DateTime        @default(now())
+}
+
+// Autorización del acudiente de un estudiante menor (Ley 1581 de 2012, art. 7): la registra
+// la administración con el soporte que la institución conserve. Sin una vigente, el menor
+// presenta sin cámara ni micrófono. Una por estudiante; registrar otra la reemplaza y
+// revocarla la deja sin efecto. El historial queda en la auditoría.
+model GuardianConsent {
+  id           String    @id @default(cuid())
+  studentId    String    @unique
+  student      User      @relation("GuardianConsentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  guardianName String
+  relationship String
+  camera       Boolean
+  microphone   Boolean
+  /// Versión del aviso que se le presentó al acudiente.
+  textVersion  String
+  /// Dónde está el soporte (p. ej., "formato firmado, archivo de secretaría"); nunca el documento.
+  evidence     String?
+  recordedById String
+  recordedBy   User      @relation("GuardianConsentRecorder", fields: [recordedById], references: [id])
+  recordedAt   DateTime  @default(now())
+  revokedAt    DateTime?
+
+  @@index([recordedById])
 }
 
 // Supervisión de un intento: qué se autorizó y los eventos registrados. Solo hechos

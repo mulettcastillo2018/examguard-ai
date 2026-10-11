@@ -69,6 +69,7 @@ export default async function AdminUsersPage() {
                     <div className="flex flex-wrap gap-1">
                       <Badge variant="secondary">{t(`roles.${row.role}`)}</Badge>
                       {row.isMinor ? <Badge variant="outline">{t("common.minor")}</Badge> : null}
+                      {row.isMinor && !row.guardianConsent ? <Badge variant="outline">{t("admin.guardian.missingBadge")}</Badge> : null}
                     </div>
                   </TableCell>
                   <TableCell>

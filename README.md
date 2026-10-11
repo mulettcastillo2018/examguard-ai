@@ -15,7 +15,8 @@ En construcción por fases (ver [roadmap](docs/ANALISIS.md#13-roadmap-ajustado))
 - **Fase 4 — Supervisión básica:** detectores del navegador, ingesta por lotes, catálogo de eventos, simulador ("modo demostración") y monitoreo en vivo del docente.
 - **Fase 5 — Agentes y reglas:** agentes de dominio, motor de reglas con umbrales por institución, agente de riesgo, señales con explicación factual y resumen para quien revisa (Claude, con barreras de lenguaje y plantilla de respaldo).
 - **Fase 6 — Revisión humana:** cola de sesiones por revisar, revisión con línea de tiempo filtrable (cada evento marca la señal que lo cita), decisión con observaciones y auditoría, y "Mis datos de supervisión" para el estudiante.
-- **Siguen:** cámara y audio reales (Fase 7) y producción (Fase 8).
+- **Fase 7 — Cámara y audio:** detección de rostros con MediaPipe y nivel del micrófono, en el navegador (la imagen y el sonido no salen del equipo); prueba de los dispositivos antes de empezar, indicadores durante el examen y autorización del acudiente para los menores, registrada por la administración.
+- **Sigue:** producción (Fase 8).
 
 ## Stack
 
@@ -45,7 +46,7 @@ Cuentas de demostración (contraseña: la de `SEED_PASSWORD`):
 |---|---|
 | Rectora (administración) | `rectoria@losandes.test` |
 | Docentes | `cmejia@losandes.test`, `dospina@losandes.test` |
-| Estudiantes | `sgomez@losandes.test` (menor de edad), `mcardenas@losandes.test`, … |
+| Estudiantes | `mcardenas@losandes.test`, `vrios@losandes.test` (menor, con autorización del acudiente), `sgomez@losandes.test` (menor, sin ella), … |
 
 ## Pruebas
 

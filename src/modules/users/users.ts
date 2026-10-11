@@ -49,11 +49,22 @@ function parseOrThrow<T>(schema: z.ZodType<T>, input: unknown): T {
 /** Usuarios de la institución del administrador (nunca de otra institución). */
 export async function listInstitutionUsers(actor: CurrentUser) {
   assertCan(actor, "users:manage");
-  return prisma.user.findMany({
+  const users = await prisma.user.findMany({
     where: { institutionId: actor.institutionId },
     orderBy: [{ role: "asc" }, { name: "asc" }],
-    select: { id: true, name: true, email: true, role: true, isMinor: true, active: true, mustChangePassword: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isMinor: true,
+      active: true,
+      mustChangePassword: true,
+      guardianConsent: { select: { revokedAt: true } },
+    },
   });
+  // Para los menores: si hay una autorización del acudiente vigente.
+  return users.map(({ guardianConsent, ...user }) => ({ ...user, guardianConsent: Boolean(guardianConsent && !guardianConsent.revokedAt) }));
 }
 
 async function findOwnUser(actor: CurrentUser, userId: string) {

@@ -102,7 +102,14 @@ export default async function ExamLobbyPage({ params }: PageProps<"/student/exam
             </Alert>
           )
         ) : (
-          <StartExam examId={exam.id} requests={lobby.requests} isMinor={lobby.isMinor} cameraExempt={lobby.cameraExempt} consent={lobby.consent} />
+          <StartExam
+            examId={exam.id}
+            requests={lobby.requests}
+            isMinor={lobby.isMinor}
+            guardian={lobby.guardian}
+            cameraExempt={lobby.cameraExempt}
+            consent={lobby.consent}
+          />
         )}
       </div>
     </>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { KeyRound, MoreHorizontal, Pencil } from "lucide-react";
+import { KeyRound, MoreHorizontal, Pencil, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -58,6 +59,14 @@ export function UserRowActions({ user, isSelf }: { user: EditableUser; isSelf: b
             <Pencil />
             {t("edit")}
           </DropdownMenuItem>
+          {user.role === "STUDENT" && user.isMinor ? (
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/users/${user.id}/guardian`}>
+                <ShieldCheck />
+                {t("guardian")}
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
           {!isSelf ? (
             <DropdownMenuItem onSelect={() => setConfirmOpen(true)}>
               <KeyRound />

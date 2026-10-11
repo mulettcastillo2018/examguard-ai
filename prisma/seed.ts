@@ -143,6 +143,8 @@ async function removeDemoInstitution() {
   // Preguntas y ajustes de cada examen caen en cascada con él.
   await prisma.exam.deleteMany({ where: { institutionId } });
   await prisma.course.deleteMany({ where: { institutionId } });
+  // Antes que los usuarios: quien registró una autorización no se puede borrar sin ella.
+  await prisma.guardianConsent.deleteMany({ where: { student: { institutionId } } });
   await prisma.user.deleteMany({ where: { institutionId } });
   await prisma.policy.deleteMany({ where: { institutionId } });
   await prisma.institution.delete({ where: { id: institutionId } });
@@ -173,7 +175,7 @@ async function main() {
   // con una sola contraseña compartida. Las cuentas reales sí lo exigen (valor por defecto).
   const common = { institutionId: institution.id, password, mustChangePassword: false };
 
-  await createCredentialUser({ ...common, name: "Laura Restrepo", email: `rectoria@${EMAIL_DOMAIN}`, role: "ADMIN" });
+  const rector = await createCredentialUser({ ...common, name: "Laura Restrepo", email: `rectoria@${EMAIL_DOMAIN}`, role: "ADMIN" });
 
   const teacherIds = new Map<string, string>();
   for (const teacher of TEACHERS) {
@@ -191,6 +193,24 @@ async function main() {
       isMinor: student.isMinor,
     });
     studentIds.push(user.id);
+  }
+
+  // Una menor con la autorización de su acudiente registrada (cámara y micrófono); los demás
+  // menores no la tienen y presentan sin ellos. Datos ficticios.
+  const valentina = studentIds[STUDENTS.findIndex((student) => student.email === "vrios")];
+  if (valentina) {
+    await prisma.guardianConsent.create({
+      data: {
+        studentId: valentina,
+        guardianName: "Patricia Ríos",
+        relationship: "Madre",
+        camera: true,
+        microphone: true,
+        textVersion: "2026-10-01",
+        evidence: "Formato firmado, archivo de secretaría (demo)",
+        recordedById: rector.id,
+      },
+    });
   }
 
   const courseIds = new Map<string, string>();

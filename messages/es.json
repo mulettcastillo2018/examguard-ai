@@ -135,7 +135,8 @@
         "description": "Se generará una contraseña temporal nueva y se cerrarán sus sesiones abiertas.",
         "confirm": "Restablecer",
         "cancel": "Cancelar"
-      }
+      },
+      "guardian": "Autorización del acudiente"
     },
     "courses": {
       "title": "Cursos",
@@ -220,6 +221,60 @@
         "tooManyRows": "Se permiten hasta 500 filas por importación."
       },
       "unknownCourses": "Cursos no encontrados: {codes}"
+    },
+    "guardian": {
+      "title": "Autorización del acudiente",
+      "description": "{name} es menor de edad: la cámara y el micrófono solo se usan con la autorización de su acudiente, registrada aquí con el soporte que conserve la institución.",
+      "back": "Usuarios",
+      "missingBadge": "Sin autorización del acudiente",
+      "notMinor": "Este estudiante no es menor de edad: no necesita la autorización de un acudiente.",
+      "status": {
+        "title": "Estado",
+        "active": "Vigente",
+        "revoked": "Revocada el {date}",
+        "none": "Sin autorización registrada: presenta sin cámara ni micrófono.",
+        "authorized": "Autorizó: {devices, select, both {cámara y micrófono} camera {cámara} other {micrófono}}",
+        "recorded": "Registrada por {name} el {date}",
+        "guardian": "{name} ({relationship})",
+        "evidence": "Soporte: {evidence}",
+        "textVersion": "Aviso versión {version}"
+      },
+      "form": {
+        "title": "Registrar autorización",
+        "replaceTitle": "Registrar una nueva autorización",
+        "replaceHint": "La nueva reemplaza la vigente.",
+        "guardianName": "Nombre del acudiente",
+        "relationship": "Parentesco",
+        "relationshipPlaceholder": "Madre, padre, abuela, tutor legal…",
+        "camera": "Autoriza la cámara",
+        "microphone": "Autoriza el micrófono",
+        "evidence": "Soporte (opcional)",
+        "evidenceHint": "Dónde está el documento firmado; por ejemplo: «Formato en secretaría, carpeta 11A». No adjuntes el documento.",
+        "save": "Registrar autorización",
+        "saving": "Guardando…",
+        "saved": "Autorización registrada.",
+        "reminder": "Registra solo lo que el acudiente autorizó por escrito, con la versión vigente del aviso. El estudiante igual decide en cada examen si lo activa."
+      },
+      "errors": {
+        "guardianName": "Escribe el nombre completo del acudiente (3 a 120 caracteres).",
+        "relationship": "Escribe el parentesco (2 a 40 caracteres).",
+        "evidence": "El soporte no puede pasar de 200 caracteres.",
+        "nothingAuthorized": "Marca al menos la cámara o el micrófono. Si el acudiente no autoriza nada, no hace falta registrar."
+      },
+      "revoke": {
+        "button": "Revocar autorización",
+        "title": "¿Revocar la autorización?",
+        "description": "Desde el próximo examen, {name} presentará sin cámara ni micrófono. Los exámenes ya presentados no cambian.",
+        "confirm": "Revocar",
+        "cancel": "Cancelar",
+        "done": "Autorización revocada."
+      },
+      "history": {
+        "title": "Historial",
+        "recorded": "{name} registró la autorización ({devices, select, both {cámara y micrófono} camera {cámara} other {micrófono}})",
+        "revoked": "{name} la revocó",
+        "empty": "Sin movimientos."
+      }
     }
   },
   "audit": {
@@ -255,7 +310,9 @@
       "ANSWER_GRADED": "Calificó una respuesta",
       "RESULTS_PUBLISHED": "Publicó los resultados de un examen",
       "EXAM_CLOSED": "Cerró un examen",
-      "SESSION_REVIEWED": "Revisó una sesión de supervisión"
+      "SESSION_REVIEWED": "Revisó una sesión de supervisión",
+      "GUARDIAN_CONSENT_RECORDED": "Autorización del acudiente registrada",
+      "GUARDIAN_CONSENT_REVOKED": "Autorización del acudiente revocada"
     },
     "entities": {
       "Session": "Sesión",
@@ -265,7 +322,8 @@
       "Question": "Pregunta",
       "Exam": "Examen",
       "ExamAttempt": "Intento de examen",
-      "ProctoringSession": "Sesión de supervisión"
+      "ProctoringSession": "Sesión de supervisión",
+      "GuardianConsent": "Autorización del acudiente"
     }
   },
   "teacher": {
@@ -683,6 +741,7 @@
       "access": "Los ven tu docente y la administración de tu institución. Tú también puedes consultarlos.",
       "refuse": "Si no autorizas la cámara o el micrófono, presentas igual y eso no genera ninguna alerta.",
       "minor": "Como eres menor de edad, la cámara y el micrófono solo se usan con la autorización de tu acudiente, registrada por tu institución. Como aún no está registrada, presentarás sin ellos, y eso no genera ninguna alerta.",
+      "minorAuthorized": "Como eres menor de edad, solo se usa lo que autorizó tu acudiente; tu institución registró su autorización para {devices, select, both {la cámara y el micrófono} camera {la cámara} other {el micrófono}}. Aun así, tú decides si lo activas en este examen: si no, presentas igual y no genera ninguna alerta.",
       "cameraExempt": "Tienes un ajuste que te exime de la cámara: no se usará en este examen.",
       "allowCamera": "Autorizo el uso de la cámara durante este examen",
       "allowMicrophone": "Autorizo el uso del micrófono durante este examen",

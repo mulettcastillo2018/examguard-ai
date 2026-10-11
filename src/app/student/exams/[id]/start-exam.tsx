@@ -101,12 +101,15 @@ export function StartExam({
   examId,
   requests,
   isMinor,
+  guardian,
   cameraExempt,
   consent,
 }: {
   examId: string;
   requests: { camera: boolean; microphone: boolean; fullscreen: boolean };
   isMinor: boolean;
+  /** Para un menor: lo que su acudiente autorizó, registrado por la institución. */
+  guardian: { camera: boolean; microphone: boolean } | null;
   cameraExempt: boolean;
   consent: { textVersion: string; retentionDays: number };
 }) {
@@ -145,8 +148,10 @@ export function StartExam({
   const [pending, setPending] = useState(false);
 
   const connectionFailed = results.some((result) => result.key === "connection" && result.state === "fail");
-  const askCamera = requests.camera && !isMinor;
-  const askMicrophone = requests.microphone && !isMinor;
+  // Un menor solo puede activar lo que su acudiente autorizó.
+  const askCamera = requests.camera && (!isMinor || Boolean(guardian?.camera));
+  const askMicrophone = requests.microphone && (!isMinor || Boolean(guardian?.microphone));
+  const guardianDevices = guardian?.camera && guardian.microphone ? "both" : guardian?.camera ? "camera" : "microphone";
 
   async function start() {
     setPending(true);
@@ -208,7 +213,11 @@ export function StartExam({
               <li>{t("consent.access")}</li>
               <li>{t("consent.refuse")}</li>
             </ul>
-            {isMinor && (requests.camera || requests.microphone) ? <p className="font-medium text-foreground">{t("consent.minor")}</p> : null}
+            {isMinor && (requests.camera || requests.microphone) ? (
+              <p className="font-medium text-foreground" data-testid="minor-consent">
+                {guardian ? t("consent.minorAuthorized", { devices: guardianDevices }) : t("consent.minor")}
+              </p>
+            ) : null}
             {cameraExempt ? <p className="font-medium text-foreground">{t("consent.cameraExempt")}</p> : null}
           </div>
 

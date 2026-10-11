@@ -6,6 +6,7 @@ import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { recordAudit } from "@/modules/audit";
 import type { CurrentUser } from "@/modules/auth/session";
 import { readProctoringConfig } from "@/modules/exams/settings";
+import { activeGuardianConsent } from "@/modules/guardian/guardian";
 import { requestSessionAnalysis } from "@/modules/agents/orchestrator";
 import { recordServerEvent, serverEvent, type DeviceInfo } from "@/modules/proctoring/proctoring";
 import { assertCan } from "@/modules/rbac";
@@ -152,12 +153,13 @@ export async function listStudentExams(actor: CurrentUser, now = new Date()) {
 export async function getExamLobby(actor: CurrentUser, examId: string, now = new Date()) {
   const exam = await findTakeableExam(actor, examId);
   await finalizeExpiredAttempts({ examId, studentId: actor.id }, now);
-  const [attempts, accommodation, questions, course, policy] = await Promise.all([
+  const [attempts, accommodation, questions, course, policy, guardian] = await Promise.all([
     prisma.examAttempt.findMany({ where: { examId, studentId: actor.id }, orderBy: { number: "asc" } }),
     prisma.accommodation.findUnique({ where: { examId_studentId: { examId, studentId: actor.id } } }),
     prisma.examQuestion.findMany({ where: { examId }, select: { points: true } }),
     prisma.course.findUniqueOrThrow({ where: { id: exam.courseId }, select: { code: true, name: true } }),
     prisma.policy.findUnique({ where: { institutionId: exam.institutionId } }),
+    actor.isMinor ? activeGuardianConsent(actor.id) : Promise.resolve(null),
   ]);
   const inProgress = attempts.find((attempt) => attempt.status === "IN_PROGRESS") ?? null;
   const proctoring = readProctoringConfig(exam.proctoringConfig);
@@ -196,6 +198,8 @@ export async function getExamLobby(actor: CurrentUser, examId: string, now = new
     },
     cameraExempt: Boolean(accommodation?.cameraExempt),
     isMinor: actor.isMinor,
+    // Para un menor: lo que su acudiente autorizó (registrado por la institución), o nada.
+    guardian: guardian ? { camera: guardian.camera, microphone: guardian.microphone } : null,
     // El aviso de consentimiento: su versión y cuánto se conservan los eventos.
     consent: { textVersion: policy?.consentTextVersion ?? "2026-10-01", retentionDays: policy?.evidenceRetentionDays ?? 30 },
   };
@@ -235,10 +239,11 @@ export async function startAttempt(actor: CurrentUser, examId: string, input: St
   const questions = await prisma.examQuestion.findMany({ where: { examId }, orderBy: { position: "asc" }, select: { id: true, points: true } });
   const ids = questions.map((question) => question.id);
 
-  // Un menor necesita la autorización de su acudiente, que la institución registra (Fase 7):
-  // mientras no exista, presenta sin cámara ni micrófono. Negarse nunca genera alertas.
-  const camera = !actor.isMinor && lobby.requests.camera && input.consent.camera;
-  const microphone = !actor.isMinor && lobby.requests.microphone && input.consent.microphone;
+  // Un menor necesita la autorización de su acudiente, registrada por la institución: solo
+  // puede activar lo que el acudiente autorizó (y aun así decide él). Negarse nunca genera alertas.
+  const camera = lobby.requests.camera && input.consent.camera && (!actor.isMinor || Boolean(lobby.guardian?.camera));
+  const microphone = lobby.requests.microphone && input.consent.microphone && (!actor.isMinor || Boolean(lobby.guardian?.microphone));
+  const grantedBy = camera || microphone ? (actor.isMinor ? "GUARDIAN" : "STUDENT") : null;
 
   try {
     const attempt = await prisma.examAttempt.create({
@@ -252,7 +257,7 @@ export async function startAttempt(actor: CurrentUser, examId: string, input: St
         questionOrder: exam.shuffleQuestions ? shuffled(ids) : ids,
         maxScore: questions.reduce((sum, question) => sum + question.points, 0),
         consent: {
-          create: { textVersion: lobby.consent.textVersion, camera, microphone, grantedBy: camera || microphone ? "STUDENT" : null, grantedAt: now },
+          create: { textVersion: lobby.consent.textVersion, camera, microphone, grantedBy, grantedAt: now },
         },
         // La supervisión solo usa lo autorizado: sin consentimiento, ni cámara ni micrófono.
         proctoring: {
