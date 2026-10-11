@@ -87,4 +87,5 @@ Este proyecto se desarrolla en una red que bloquea algunos paquetes con binarios
 - [Análisis y propuesta técnica](docs/ANALISIS.md): revisión crítica de la especificación, arquitectura, modelo de datos, agentes, privacidad, riesgos y roadmap.
 - [Decisiones técnicas](docs/DECISIONES.md).
 - [Despliegue](docs/DESPLIEGUE.md): Neon, Vercel, modo demostración y Docker.
+- [Propuesta: fotos fijas en eventos graves](docs/PROPUESTA-FOTOS.md) (pendiente de decisión).
 - [Especificación original](docs/especificacion-original.md).
